@@ -2,7 +2,8 @@
 
 [Edit in StackBlitz next generation editor ⚡️](https://stackblitz.com/~/github.com/sudo-self/space-shooter)
 
-## "p" pause
+## controls
 
-## "spacebar" shoot
-   
+1. <code>p</code> pause
+
+2. <code>spacebar</code>   
