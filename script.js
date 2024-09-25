@@ -230,9 +230,9 @@ function updateKillCountDisplay() {
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 9) {
-    bulletColor = 'red';
-    bulletSpeed = 10;
+  if (alienShip.killCount >= 6) {
+    bulletColor = 'yellow';
+    bulletSpeed = 14;
   }
 }
 
