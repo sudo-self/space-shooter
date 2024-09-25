@@ -198,6 +198,12 @@ function moveAlienBullets() {
   alienShip.bullets = alienShip.bullets.filter(bullet => bullet.y < canvas.height);
 }
 
+// This function updates the kill count and score display
+function updateKillCountDisplay() {
+    document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount} Score: ${score}`;
+}
+
+// Modify the checkBulletAlienCollision function to increment the score
 function checkBulletAlienCollision() {
     for (let i = 0; i < alienShip.ships.length; i++) {
         const alien = alienShip.ships[i];
@@ -213,10 +219,9 @@ function checkBulletAlienCollision() {
                 alienShip.ships.splice(i, 1);
                 ship.bullets.splice(j, 1);
                 alienShip.killCount++;
-                
-                
-                score += 100; 
-                updateKillCountDisplay();
+
+                score += 100; // Increment score by 100 for each kill
+                updateKillCountDisplay(); // Update the score display
                 drawKillImage(alien.x, alien.y);
                 break;
             }
@@ -224,14 +229,6 @@ function checkBulletAlienCollision() {
     }
 }
 
-
-function updateKillCountDisplay() {
-    document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount} Score: ${score}`;
-}
-
-function updateKillCountDisplay() {
-  document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
-}
 
 function updateBulletColor() {
   if (alienShip.killCount >= 9) {
