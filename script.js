@@ -9,13 +9,13 @@ canvas.height = window.innerHeight;
 const ship = {
   width: 50,
   height: 50,
-  x: canvas.width / 2 - 40,
+  x: canvas.width / 2 - 25,
   y: canvas.height - 90,
   speed: 5,
   bullets: [],
-  lives: 3
+  lives: 3,
+  image: new Image()
 };
-ship.image = new Image();
 ship.image.src = './assets/ship.webp';
 
 // Alien Ship object
@@ -30,11 +30,13 @@ const alienShip = {
 };
 alienShip.image.src = './assets/ship_alien.webp';
 
+// Bullet properties
 let bulletSpeed = 7;
 let bulletColor = 'green';
 const alienBulletSpeed = 5;
 const alienBulletColor = 'red';
 
+// Game state variables
 let isDragging = false;
 let touchStartX = 0;
 let touchStartY = 0;
@@ -124,6 +126,89 @@ function moveBullets() {
 }
 
 // Draw lives on top left corner
+function drawLives() {
+  ctx.fillStyle = 'white';
+  ctx.font = '20px Arial';
+  ctx.fillText(`Lives: ${ship.lives}`, 10, 30);
+}
+
+// Draw the score on top right corner
+function drawScore() {
+  ctx.fillStyle = 'white';
+  ctx.font = '20px Arial';
+  ctx.fillText(`Score: ${score}`, canvas.width - 100, 30);
+}
+
+// Create alien ships
+function createAlienShips() {
+  if (alienShip.ships.length < 5) { // Limit the number of alien ships
+    const alien = {
+      x: Math.random() * (canvas.width - alienShip.width),
+      y: Math.random() * 200, // Position them at the top of the canvas
+      width: alienShip.width,
+      height: alienShip.height,
+      isAlive: true
+    };
+    alienShip.ships.push(alien);
+  }
+}
+
+// Draw alien ships
+function drawAlienShips() {
+  alienShip.ships.forEach((alien) => {
+    if (alien.isAlive) {
+      ctx.drawImage(alienShip.image, alien.x, alien.y, alien.width, alien.height);
+    }
+  });
+}
+
+// Move alien ships and check for collisions with bullets
+function moveAlienShips() {
+  alienShip.ships.forEach((alien) => {
+    if (alien.isAlive) {
+      alien.y += alienShip.speed;
+
+      // Check for collisions with ship bullets
+      ship.bullets.forEach((bullet, bulletIndex) => {
+        if (
+          bullet.x >= alien.x &&
+          bullet.x <= alien.x + alien.width &&
+          bullet.y <= alien.y + alien.height
+        ) {
+          // Remove the bullet and mark the alien as dead
+          ship.bullets.splice(bulletIndex, 1);
+          alien.isAlive = false;
+          alienShip.killCount++;
+          score += 10; // Increment score for each kill
+        }
+      });
+    }
+  });
+
+  // Remove dead aliens
+  alienShip.ships = alienShip.ships.filter(alien => alien.isAlive);
+}
+
+// Game loop
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  drawShip();
+  drawBullets();
+  drawLives();
+  drawScore();
+  createAlienShips();
+  drawAlienShips();
+  moveBullets();
+  moveAlienShips();
+
+  // Request the next frame
+  requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+gameLoop();
+
 
 
 
