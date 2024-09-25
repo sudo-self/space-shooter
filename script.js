@@ -45,10 +45,17 @@ function checkPowerUpCollision() {
   }
 }
 
+  checkPowerUpCollision();
+
+
+ if (powerUp.active) {
+    ctx.drawImage(powerUp.image, powerUp.x, powerUp.y, powerUp.width, powerUp.height);
+  }
+
 
 function updateGame() {
 
-  checkPowerUpCollision();
+
 
 
   if (ship.hasQuadShot) {
