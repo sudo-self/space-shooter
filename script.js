@@ -5,6 +5,7 @@ let score = 0;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// Ship object
 const ship = {
   width: 50,
   height: 50,
@@ -17,6 +18,7 @@ const ship = {
 ship.image = new Image();
 ship.image.src = './assets/ship.webp';
 
+// Alien Ship object
 const alienShip = {
   width: 100,
   height: 100,
@@ -38,7 +40,7 @@ let touchStartX = 0;
 let touchStartY = 0;
 let pause = false;
 
-// Detect touchstart to start dragging the ship
+// Touch event: start dragging the ship
 canvas.addEventListener('touchstart', (event) => {
   const touch = event.touches[0];
   const touchX = touch.clientX;
@@ -55,7 +57,7 @@ canvas.addEventListener('touchstart', (event) => {
     touchStartX = touchX - ship.x;
     touchStartY = touchY - ship.y;
   } else {
-    // If it's not on the ship, consider it a tap to shoot
+    // Tap to shoot if touch is not on the ship
     shootBullet();
   }
 });
@@ -71,7 +73,7 @@ canvas.addEventListener('touchmove', (event) => {
     ship.x = touchX - touchStartX;
     ship.y = touchY - touchStartY;
 
-    // Keep the ship within the canvas bounds
+    // Keep the ship within canvas bounds
     if (ship.x < 0) ship.x = 0;
     if (ship.x > canvas.width - ship.width) ship.x = canvas.width - ship.width;
     if (ship.y < 0) ship.y = 0;
@@ -88,6 +90,7 @@ canvas.addEventListener('touchend', () => {
 function shootBullet() {
   if (!pause) {
     if (alienShip.killCount >= 9) {
+      // Two bullets after 9 kills
       ship.bullets.push({ x: ship.x + 10, y: ship.y });
       ship.bullets.push({ x: ship.x + ship.width - 30, y: ship.y });
     } else {
@@ -99,12 +102,12 @@ function shootBullet() {
   }
 }
 
-// Movement and collision logic remains the same as before
-
+// Draw the ship
 function drawShip() {
   ctx.drawImage(ship.image, ship.x, ship.y, ship.width, ship.height);
 }
 
+// Draw ship bullets
 function drawBullets() {
   ctx.fillStyle = bulletColor;
   ship.bullets.forEach(bullet => {
@@ -112,6 +115,7 @@ function drawBullets() {
   });
 }
 
+// Move ship bullets
 function moveBullets() {
   ship.bullets.forEach(bullet => {
     bullet.y -= bulletSpeed;
@@ -119,56 +123,7 @@ function moveBullets() {
   ship.bullets = ship.bullets.filter(bullet => bullet.y > 0);
 }
 
-function drawLives() {
-  const lifeWidth = 25;
-  const lifeHeight = 25;
-  const lifeMargin = 10;
+// Draw lives on top left corner
 
-  for (let i = 0; i < ship.lives; i++) {
-    const x = lifeMargin + (lifeWidth + lifeMargin) * i;
-    const y = lifeMargin;
-    ctx.drawImage(ship.image, x, y, lifeWidth, lifeHeight);
-  }
-}
-
-function createAliens() {
-  const numberOfWaves = 2;
-  const aliensPerWave = 5;
-  alienShip.ships = [];
-  for (let waveNum = 0; waveNum < numberOfWaves; waveNum++) {
-    for (let i = 0; i < aliensPerWave; i++) {
-      alienShip.ships.push({
-        x: Math.random() * (canvas.width - alienShip.width),
-        y: -Math.random() * canvas.height,
-        hasFired: false
-      });
-    }
-  }
-}
-
-// Remaining game logic and functions...
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (!pause) {
-    moveBullets();
-    moveAliens();
-    moveAlienBullets();
-    checkBulletAlienCollision();
-    updateBulletColor();
-    checkCollision();
-
-    drawShip();
-    drawBullets();
-    drawAliens();
-    drawAlienBullets();
-    drawLives();
-  }
-
-  requestAnimationFrame(animate);
-}
-
-createAliens();
-animate();
 
 
