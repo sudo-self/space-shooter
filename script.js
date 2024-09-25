@@ -31,7 +31,7 @@ const killImage = new Image();
 killImage.src = './assets/kill.webp';
 
 let bulletSpeed = 7;
-let bulletColor = 'green';
+let bulletColor = 'blue';
 
 const alienBulletSpeed = 5;
 const alienBulletColor = 'red';
@@ -127,15 +127,15 @@ function drawLives() {
 }
 
 function createAliens() {
-  const numberOfWaves = 2;
-  const aliensPerWave = 5;
+  const numberOfWaves = 6;
+  const aliensPerWave = 12;
   alienShip.ships = [];
   for (let waveNum = 0; waveNum < numberOfWaves; waveNum++) {
     for (let i = 0; i < aliensPerWave; i++) {
       alienShip.ships.push({
         x: Math.random() * (canvas.width - alienShip.width),
         y: -Math.random() * canvas.height,
-        hasFired: false // Initialize hasFired property
+        hasFired: false 
       });
     }
   }
@@ -151,7 +151,7 @@ function moveAliens() {
   alienShip.ships.forEach(alien => {
     alien.y += alienShip.speed;
 
-    // Only fire bullets if the alien has not already fired
+ 
     if (!alien.hasFired) {
       if (wave === 1 && Math.random() < 0.02) {
         alienShip.bullets.push({
@@ -174,7 +174,7 @@ function moveAliens() {
       }
     }
 
-    // Reset firing status if the alien goes off-screen
+
     if (alien.y >= canvas.height) {
       alien.hasFired = false;
     }
@@ -230,7 +230,14 @@ function updateKillCountDisplay() {
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 6) {
+  if (alienShip.killCount >= 24) {
+    bulletColor = 'purple';  
+    bulletSpeed = 18;      
+    enableQuads();   // Activate(4 bullets)
+  } else if (alienShip.killCount >= 20) {
+    bulletColor = 'blue';
+    bulletSpeed = 16;
+  } else if (alienShip.killCount >= 6) {
     bulletColor = 'yellow';
     bulletSpeed = 14;
   }
