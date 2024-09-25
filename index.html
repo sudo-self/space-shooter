@@ -1,37 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    
-    <title>shooter</title>
+    <title>Shooter Game</title>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    
-<link rel="shortcut icon" href="favicon.ico" />
-<link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="favicon.ico">
-<link rel="apple-touch-icon" sizes="any" href="apple-touch-icon.png">
-<link rel="icon" sizes="32x32" href="favicon.png" >
-<meta name="msapplication-TileColor" content="#FFFFFF">
-<meta name="msapplication-TileImage" content="icon512.png">
+    <!-- Favicon and Icons -->
+    <link rel="shortcut icon" href="favicon.ico" />
+    <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="favicon.ico" />
+    <link rel="apple-touch-icon" sizes="any" href="apple-touch-icon.png" />
+    <link rel="icon" sizes="32x32" href="favicon.png" />
+    <meta name="msapplication-TileColor" content="#FFFFFF" />
+    <meta name="msapplication-TileImage" content="icon512.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" sizes="192x192" href="favicon-192.png" />
 
-
-<meta name="theme-color" content="#ffffff">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" sizes="192x192" href="favicon-192.png">
-<meta name="viewport" content="width=device-width" />
+    <!-- External Stylesheet -->
     <link rel="stylesheet" href="styles.css" />
-    <script type="module" src="script.js"></script>
-  </head>
-<body>
-  <canvas id="gameCanvas"></canvas>
-  <div id="pauseMenu">
-    <h2>Paused</h2>
-    <button onclick="togglePause()">Resume</button>
-  </div>
- <div id="killCount" style="color: white; font-size: 20px; position: absolute; top: 10px; left: 10px;">
-    Kills: 0 Score: 0
-</div>
 
-</body>
+    <!-- Game Script -->
+    <script type="module" src="game.js"></script>
+  </head>
+
+  <body>
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Pause Menu -->
+    <div id="pauseMenu" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; background-color: rgba(0, 0, 0, 0.7); padding: 20px; color: white; border-radius: 10px;">
+      <h2>Paused</h2>
+      <button onclick="togglePause()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Resume</button>
+    </div>
+
+    <!-- Kill Count and Score Display -->
+    <div id="killCount" style="color: white; font-size: 20px; position: absolute; top: 10px; left: 10px;">
+      Kills: 0 Score: 0
+    </div>
+  </body>
 </html>
+
 
 
