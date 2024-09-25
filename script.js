@@ -5,14 +5,14 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const ship = {
-  width: 50,
-  height: 50,
+  width: 80,
+  height: 90,
   x: canvas.width / 2 - 40,
   y: canvas.height - 90,
-  speed: 5,
+  speed: 7,
   image: new Image(),
   bullets: [],
-  lives: 3
+  lives: 4
 };
 ship.image.src = './assets/ship.webp';
 
