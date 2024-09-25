@@ -5,9 +5,13 @@ body {
 }
 canvas {
   display: block;
-  background-image: url('./assets/space-background.jpg');
-  background-size: cover;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('./assets/space-background.jpg'); 
+  background-size: cover; 
+  background-position: center;
 }
+
 #pauseMenu {
   position: absolute;
   top: 50%;
