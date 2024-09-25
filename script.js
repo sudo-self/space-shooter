@@ -136,7 +136,7 @@ function createAliens() {
       alienShip.ships.push({
         x: Math.random() * (canvas.width - alienShip.width),
         y: -Math.random() * canvas.height,
-        hasFired: false // Initialize hasFired property
+        hasFired: false
       });
     }
   }
@@ -152,7 +152,6 @@ function moveAliens() {
   alienShip.ships.forEach(alien => {
     alien.y += alienShip.speed;
 
-    // Only fire bullets if the alien has not already fired
     if (!alien.hasFired) {
       if (wave === 1 && Math.random() < 0.02) {
         alienShip.bullets.push({
@@ -175,7 +174,6 @@ function moveAliens() {
       }
     }
 
-    // Reset firing status if the alien goes off-screen
     if (alien.y >= canvas.height) {
       alien.hasFired = false;
     }
@@ -198,37 +196,33 @@ function moveAlienBullets() {
   alienShip.bullets = alienShip.bullets.filter(bullet => bullet.y < canvas.height);
 }
 
-// This function updates the kill count and score display
-function updateKillCountDisplay() {
-    document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount} Score: ${score}`;
-}
-
-// Modify the checkBulletAlienCollision function to increment the score
 function checkBulletAlienCollision() {
-    for (let i = 0; i < alienShip.ships.length; i++) {
-        const alien = alienShip.ships[i];
-        for (let j = 0; j < ship.bullets.length; j++) {
-            const bullet = ship.bullets[j];
+  for (let i = 0; i < alienShip.ships.length; i++) {
+    const alien = alienShip.ships[i];
+    for (let j = 0; j < ship.bullets.length; j++) {
+      const bullet = ship.bullets[j];
 
-            if (
-                bullet.x < alien.x + alienShip.width &&
-                bullet.x + 5 > alien.x &&
-                bullet.y < alien.y + alienShip.height &&
-                bullet.y + 15 > alien.y
-            ) {
-                alienShip.ships.splice(i, 1);
-                ship.bullets.splice(j, 1);
-                alienShip.killCount++;
-
-                score += 100; // Increment score by 100 for each kill
-                updateKillCountDisplay(); // Update the score display
-                drawKillImage(alien.x, alien.y);
-                break;
-            }
-        }
+      if (
+        bullet.x < alien.x + alienShip.width &&
+        bullet.x + 5 > alien.x &&
+        bullet.y < alien.y + alienShip.height &&
+        bullet.y + 15 > alien.y
+      ) {
+        alienShip.ships.splice(i, 1);
+        ship.bullets.splice(j, 1);
+        alienShip.killCount++;
+        score += 100;
+        updateKillCountDisplay();
+        drawKillImage(alien.x, alien.y);
+        break;
+      }
     }
+  }
 }
 
+function updateKillCountDisplay() {
+  document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount} Score: ${score}`;
+}
 
 function updateBulletColor() {
   if (alienShip.killCount >= 9) {
@@ -275,27 +269,31 @@ function togglePause() {
   drawPauseMenu();
 }
 
-function update() {
+function drawKillImage(x, y) {
+  ctx.drawImage(killImage, x, y, 50, 50);
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (!pause) {
     handleMovement();
     moveBullets();
     moveAliens();
     moveAlienBullets();
     checkBulletAlienCollision();
+    updateBulletColor();
     checkCollision();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     drawShip();
     drawBullets();
     drawAliens();
     drawAlienBullets();
     drawLives();
   }
-}
 
-function gameLoop() {
-  update();
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(animate);
 }
 
 createAliens();
-gameLoop();
+animate();
+
