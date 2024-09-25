@@ -5,17 +5,59 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const ship = {
-  width: 100, 
-  height: 100, 
-  x: canvas.width / 2 - 50,  
-  y: canvas.height - 140,  
+  width: 50,
+  height: 50,
+  x: canvas.width / 2 - 40,
+  y: canvas.height - 90,
   speed: 5,
   image: new Image(),
   bullets: [],
-  lives: 3
+  lives: 3,
+  hasQuadShot: false,
+  quadShotTimer: 0 
 };
 
 ship.image.src = './assets/ship.webp';
+
+const powerUp = {
+  width: 30,
+  height: 30,
+  x: Math.random() * (canvas.width - 30), 
+  y: Math.random() * (canvas.height - 200), 
+  image: new Image(),
+  active: true 
+};
+
+powerUp.image.src = './assets/Power.png';
+
+function checkPowerUpCollision() {
+  if (
+    powerUp.active &&
+    ship.x < powerUp.x + powerUp.width &&
+    ship.x + ship.width > powerUp.x &&
+    ship.y < powerUp.y + powerUp.height &&
+    ship.height + ship.y > powerUp.y
+  ) {
+ 
+    powerUp.active = false; 
+    ship.hasQuadShot = true; 
+    ship.quadShotTimer = 600; 
+  }
+}
+
+
+function updateGame() {
+
+  checkPowerUpCollision();
+
+
+  if (ship.hasQuadShot) {
+    ship.quadShotTimer--;
+    if (ship.quadShotTimer <= 0) {
+      ship.hasQuadShot = false; 
+    }
+  }
+
 
 const alienShip = {
   width: 100,
@@ -26,6 +68,7 @@ const alienShip = {
   bullets: [],
   killCount: 0
 };
+
 alienShip.image.src = './assets/ship_alien.webp';
 
 const killImage = new Image();
@@ -175,7 +218,6 @@ function moveAliens() {
       }
     }
 
-    // Reset firing status if the alien goes off-screen
     if (alien.y >= canvas.height) {
       alien.hasFired = false;
     }
