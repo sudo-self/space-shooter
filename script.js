@@ -5,15 +5,16 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 const ship = {
-  width: 50,
-  height: 50,
-  x: canvas.width / 2 - 40,
-  y: canvas.height - 90,
+  width: 100, 
+  height: 100, 
+  x: canvas.width / 2 - 50,  
+  y: canvas.height - 140,  
   speed: 5,
   image: new Image(),
   bullets: [],
   lives: 3
 };
+
 ship.image.src = './assets/ship.webp';
 
 const alienShip = {
