@@ -230,17 +230,53 @@ function updateKillCountDisplay() {
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 24) {
-    bulletColor = 'purple';  
-    bulletSpeed = 18;      
-    enableQuads();   // Activate(4 bullets)
-  } else if (alienShip.killCount >= 20) {
+  if (alienShip.killCount >= 13) {
+    bulletColor = 'purple';
+    bulletSpeed = 18;
+    enableQuads();
+  } else if (alienShip.killCount >= 9) {
     bulletColor = 'blue';
     bulletSpeed = 16;
   } else if (alienShip.killCount >= 6) {
     bulletColor = 'yellow';
     bulletSpeed = 14;
   }
+}
+
+function enableQuads() {
+  const quadBullets = [];
+
+  for (let i = 0; i < 4; i++) {
+    let quadBullet = createBullet();
+    quadBullet.direction = adjustDirection(i);
+    quadBullet.speed = bulletSpeed;
+    quadBullets.push(quadBullet);
+  }
+
+  game.bullets.push(...quadBullets);
+}
+
+function adjustDirection(index) {
+  switch (index) {
+    case 0: return { x: -0.5, y: -1 };
+    case 1: return { x: -0.25, y: -1 };
+    case 2: return { x: 0.25, y: -1 };
+    case 3: return { x: 0.5, y: -1 };
+  }
+}
+
+function createBullet() {
+  return {
+    position: { x: player.position.x, y: player.position.y },
+    speed: bulletSpeed,
+    direction: { x: 0, y: 0 },
+    color: bulletColor,
+    size: 5,
+    update: function() {
+      this.position.x += this.direction.x * this.speed;
+      this.position.y += this.direction.y * this.speed;
+    }
+  };
 }
 
 function checkCollision() {
