@@ -1,5 +1,6 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+let score = 0;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -198,31 +199,34 @@ function moveAlienBullets() {
 }
 
 function checkBulletAlienCollision() {
-  for (let i = 0; i < alienShip.ships.length; i++) {
-    const alien = alienShip.ships[i];
-    for (let j = 0; j < ship.bullets.length; j++) {
-      const bullet = ship.bullets[j];
+    for (let i = 0; i < alienShip.ships.length; i++) {
+        const alien = alienShip.ships[i];
+        for (let j = 0; j < ship.bullets.length; j++) {
+            const bullet = ship.bullets[j];
 
-      if (
-        bullet.x < alien.x + alienShip.width &&
-        bullet.x + 5 > alien.x &&
-        bullet.y < alien.y + alienShip.height &&
-        bullet.y + 15 > alien.y
-      ) {
-        alienShip.ships.splice(i, 1);
-        ship.bullets.splice(j, 1);
-        alienShip.killCount++;
-        updateBulletColor();
-        drawKillImage(alien.x, alien.y);
-        updateKillCountDisplay();
-        break;
-      }
+            if (
+                bullet.x < alien.x + alienShip.width &&
+                bullet.x + 5 > alien.x &&
+                bullet.y < alien.y + alienShip.height &&
+                bullet.y + 15 > alien.y
+            ) {
+                alienShip.ships.splice(i, 1);
+                ship.bullets.splice(j, 1);
+                alienShip.killCount++;
+                
+                
+                score += 100; 
+                updateKillCountDisplay();
+                drawKillImage(alien.x, alien.y);
+                break;
+            }
+        }
     }
-  }
 }
 
-function drawKillImage(x, y) {
-  ctx.drawImage(killImage, x, y, 50, 50);
+
+function updateKillCountDisplay() {
+    document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount} Score: ${score}`;
 }
 
 function updateKillCountDisplay() {
