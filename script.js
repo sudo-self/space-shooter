@@ -1,149 +1,302 @@
-// Get the canvas and context
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let score = 0;
 
-// Set canvas size
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Ship object
 const ship = {
-    width: 50,
-    height: 50,
-    x: canvas.width / 2 - 25,
-    y: canvas.height - 90,
-    speed: 5,
-    bullets: [],
-    lives: 3,
-    image: new Image()
+  width: 50,
+  height: 50,
+  x: canvas.width / 2 - 40,
+  y: canvas.height - 90,
+  speed: 5,
+  image: new Image(),
+  bullets: [],
+  lives: 3
 };
 ship.image.src = './assets/ship.webp';
 
-// Alien Ship object
 const alienShip = {
-    width: 100,
-    height: 100,
-    speed: 2,
-    image: new Image(),
-    ships: [],
-    bullets: [],
-    killCount: 0
+  width: 100,
+  height: 100,
+  speed: 2,
+  image: new Image(),
+  ships: [],
+  bullets: [],
+  killCount: 0
 };
 alienShip.image.src = './assets/ship_alien.webp';
 
-// Game variables
+const killImage = new Image();
+killImage.src = './assets/kill.webp';
+
 let bulletSpeed = 7;
 let bulletColor = 'green';
-let alienBulletSpeed = 5;
-let alienBulletColor = 'red';
-let isDragging = false;
-let touchStartX = 0;
-let touchStartY = 0;
+
+const alienBulletSpeed = 5;
+const alienBulletColor = 'red';
+
+const keys = {
+  ArrowLeft: false,
+  ArrowRight: false,
+  ArrowUp: false,
+  ArrowDown: false
+};
+
 let pause = false;
+let wave = 1;
 
-// Touch event: start dragging the ship
-canvas.addEventListener('touchstart', (event) => {
-    const touch = event.touches[0];
-    const touchX = touch.clientX;
-    const touchY = touch.clientY;
+document.addEventListener('keydown', event => {
+  if (event.code in keys) {
+    keys[event.code] = true;
+  }
 
-    // Check if the touch is on the ship
-    if (
-        touchX >= ship.x &&
-        touchX <= ship.x + ship.width &&
-        touchY >= ship.y &&
-        touchY <= ship.y + ship.height
-    ) {
-        isDragging = true;
-        touchStartX = touchX - ship.x;
-        touchStartY = touchY - ship.y;
-    } else {
-        // Tap to shoot if touch is not on the ship
-        shootBullet();
-    }
+  if (event.code === 'Space' && !pause) {
+    event.preventDefault();
+    shootBullet();
+  }
+
+  if (event.code === 'KeyP') {
+    togglePause();
+  }
 });
 
-// Handle dragging the ship
-canvas.addEventListener('touchmove', (event) => {
-    if (isDragging) {
-        const touch = event.touches[0];
-        const touchX = touch.clientX;
-        const touchY = touch.clientY;
-
-        // Move the ship based on touch position
-        ship.x = touchX - touchStartX;
-        ship.y = touchY - touchStartY;
-
-        // Keep the ship within canvas bounds
-        if (ship.x < 0) ship.x = 0;
-        if (ship.x > canvas.width - ship.width) ship.x = canvas.width - ship.width;
-        if (ship.y < 0) ship.y = 0;
-        if (ship.y > canvas.height - ship.height) ship.y = canvas.height - ship.height;
-    }
+document.addEventListener('keyup', event => {
+  if (event.code in keys) {
+    keys[event.code] = false;
+  }
 });
 
-// Stop dragging the ship
-canvas.addEventListener('touchend', () => {
-    isDragging = false;
-});
+function handleMovement() {
+  if (keys.ArrowLeft && ship.x > 0) {
+    ship.x -= ship.speed;
+  }
+  if (keys.ArrowRight && ship.x < canvas.width - ship.width) {
+    ship.x += ship.speed;
+  }
+  if (keys.ArrowUp && ship.y > 0) {
+    ship.y -= ship.speed;
+  }
+  if (keys.ArrowDown && ship.y < canvas.height - ship.height) {
+    ship.y += ship.speed;
+  }
+}
 
-// Shoot bullets
 function shootBullet() {
-    if (!pause) {
-        if (alienShip.killCount >= 9) {
-            // Two bullets after 9 kills
-            ship.bullets.push({ x: ship.x + 10, y: ship.y });
-            ship.bullets.push({ x: ship.x + ship.width - 30, y: ship.y });
-        } else {
-            ship.bullets.push({
-                x: ship.x + ship.width / 2 - 2.5,
-                y: ship.y
-            });
-        }
+  if (!pause) {
+    if (alienShip.killCount >= 9) {
+      ship.bullets.push({ x: ship.x + 10, y: ship.y });
+      ship.bullets.push({ x: ship.x + ship.width - 30, y: ship.y });
+    } else {
+      ship.bullets.push({
+        x: ship.x + ship.width / 2 - 2.5,
+        y: ship.y
+      });
     }
+  }
 }
 
-// Draw the ship
 function drawShip() {
-    if (ship.image.complete) {
-        ctx.drawImage(ship.image, ship.x, ship.y, ship.width, ship.height);
-    }
+  ctx.drawImage(ship.image, ship.x, ship.y, ship.width, ship.height);
 }
 
-// Draw ship bullets
 function drawBullets() {
-    ctx.fillStyle = bulletColor;
-    ship.bullets.forEach(bullet => {
-        ctx.fillRect(bullet.x, bullet.y, 5, 15);
-    });
+  ctx.fillStyle = bulletColor;
+  ship.bullets.forEach(bullet => {
+    ctx.fillRect(bullet.x, bullet.y, 5, 15);
+  });
 }
 
-// Move ship bullets
 function moveBullets() {
-    ship.bullets.forEach(bullet => {
-        bullet.y -= bulletSpeed;
-    });
-    ship.bullets = ship.bullets.filter(bullet => bullet.y > 0);
+  ship.bullets.forEach(bullet => {
+    bullet.y -= bulletSpeed;
+  });
+  ship.bullets = ship.bullets.filter(bullet => bullet.y > 0);
 }
 
-// Draw function
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-    drawShip(); // Draw the ship
-    drawBullets(); // Draw bullets
+function drawLives() {
+  const lifeWidth = 25;
+  const lifeHeight = 25;
+  const lifeMargin = 10;
+
+  for (let i = 0; i < ship.lives; i++) {
+    const x = lifeMargin + (lifeWidth + lifeMargin) * i;
+    const y = lifeMargin;
+    ctx.drawImage(ship.image, x, y, lifeWidth, lifeHeight);
+  }
 }
 
-// Game loop
-function gameLoop() {
-    if (!pause) {
-        moveBullets(); // Move bullets
-        draw(); // Draw everything
+function createAliens() {
+  const numberOfWaves = 2;
+  const aliensPerWave = 5;
+  alienShip.ships = [];
+  for (let waveNum = 0; waveNum < numberOfWaves; waveNum++) {
+    for (let i = 0; i < aliensPerWave; i++) {
+      alienShip.ships.push({
+        x: Math.random() * (canvas.width - alienShip.width),
+        y: -Math.random() * canvas.height,
+        hasFired: false // Initialize hasFired property
+      });
     }
-    requestAnimationFrame(gameLoop);
+  }
 }
 
-// Start the game
+function drawAliens() {
+  alienShip.ships.forEach(alien => {
+    ctx.drawImage(alienShip.image, alien.x, alien.y, alienShip.width, alienShip.height);
+  });
+}
+
+function moveAliens() {
+  alienShip.ships.forEach(alien => {
+    alien.y += alienShip.speed;
+
+    // Only fire bullets if the alien has not already fired
+    if (!alien.hasFired) {
+      if (wave === 1 && Math.random() < 0.02) {
+        alienShip.bullets.push({
+          x: alien.x + alienShip.width / 2 - 2.5,
+          y: alien.y + alienShip.height
+        });
+        alien.hasFired = true;
+      } else if (wave === 2 && Math.random() < 0.05) {
+        alienShip.bullets.push({
+          x: alien.x + alienShip.width / 2 - 2.5,
+          y: alien.y + alienShip.height
+        });
+        alien.hasFired = true;
+      } else if (wave >= 3 && Math.random() < 0.1) {
+        alienShip.bullets.push({
+          x: alien.x + alienShip.width / 2 - 2.5,
+          y: alien.y + alienShip.height
+        });
+        alien.hasFired = true;
+      }
+    }
+
+    // Reset firing status if the alien goes off-screen
+    if (alien.y >= canvas.height) {
+      alien.hasFired = false;
+    }
+  });
+
+  alienShip.ships = alienShip.ships.filter(alien => alien.y < canvas.height);
+}
+
+function drawAlienBullets() {
+  ctx.fillStyle = alienBulletColor;
+  alienShip.bullets.forEach(bullet => {
+    ctx.fillRect(bullet.x, bullet.y, 5, 15);
+  });
+}
+
+function moveAlienBullets() {
+  alienShip.bullets.forEach(bullet => {
+    bullet.y += alienBulletSpeed;
+  });
+  alienShip.bullets = alienShip.bullets.filter(bullet => bullet.y < canvas.height);
+}
+
+function checkBulletAlienCollision() {
+  for (let i = 0; i < alienShip.ships.length; i++) {
+    const alien = alienShip.ships[i];
+    for (let j = 0; j < ship.bullets.length; j++) {
+      const bullet = ship.bullets[j];
+
+      if (
+        bullet.x < alien.x + alienShip.width &&
+        bullet.x + 5 > alien.x &&
+        bullet.y < alien.y + alienShip.height &&
+        bullet.y + 15 > alien.y
+      ) {
+        alienShip.ships.splice(i, 1);
+        ship.bullets.splice(j, 1);
+        alienShip.killCount++;
+        updateBulletColor();
+        drawKillImage(alien.x, alien.y);
+        updateKillCountDisplay();
+        break;
+      }
+    }
+  }
+}
+
+function drawKillImage(x, y) {
+  ctx.drawImage(killImage, x, y, 50, 50);
+}
+
+function updateKillCountDisplay() {
+  document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
+}
+
+function updateBulletColor() {
+  if (alienShip.killCount >= 9) {
+    bulletColor = 'red';
+    bulletSpeed = 10;
+  }
+}
+
+function checkCollision() {
+  alienShip.bullets.forEach(bullet => {
+    if (
+      bullet.x < ship.x + ship.width &&
+      bullet.x + 5 > ship.x &&
+      bullet.y < ship.y + ship.height &&
+      bullet.y + 15 > ship.y
+    ) {
+      ship.lives--;
+      if (ship.lives <= 0) {
+        endGame();
+      }
+      alienShip.bullets = alienShip.bullets.filter(b => b !== bullet);
+    }
+  });
+}
+
+function endGame() {
+  pause = true;
+  ctx.fillStyle = 'white';
+  ctx.font = '48px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+}
+
+function drawPauseMenu() {
+  if (pause) {
+    document.getElementById('pauseMenu').style.display = 'block';
+  } else {
+    document.getElementById('pauseMenu').style.display = 'none';
+  }
+}
+
+function togglePause() {
+  pause = !pause;
+  drawPauseMenu();
+}
+
+function update() {
+  if (!pause) {
+    handleMovement();
+    moveBullets();
+    moveAliens();
+    moveAlienBullets();
+    checkBulletAlienCollision();
+    checkCollision();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawShip();
+    drawBullets();
+    drawAliens();
+    drawAlienBullets();
+    drawLives();
+  }
+}
+
+function gameLoop() {
+  update();
+  requestAnimationFrame(gameLoop);
+}
+
+createAliens();
 gameLoop();
 
 
