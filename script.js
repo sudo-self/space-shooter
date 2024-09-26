@@ -32,9 +32,9 @@ const alienShip = {
 alienShip.image.src = './assets/ship_alien.webp';
 
 const hitImage = new Image();
-hitImage.src = './assets/hit.webp'; // Image for when the ship takes a hit
+hitImage.src = './assets/hit.webp'; 
 const resetImage = new Image();
-resetImage.src = './assets/reset.webp'; // Image for when the ship is being reset
+resetImage.src = './assets/reset.webp'; 
 const killImage = new Image();
 killImage.src = './assets/kill.webp';
 
@@ -187,9 +187,9 @@ function moveAlienBullets() {
 }
 
 function checkBulletAlienCollision() {
-  for (let i = 0; i < alienShip.ships.length; i++) {
+  for (let i = alienShip.ships.length - 1; i >= 0; i--) {
     const alien = alienShip.ships[i];
-    for (let j = 0; j < ship.bullets.length; j++) {
+    for (let j = ship.bullets.length - 1; j >= 0; j--) {
       const bullet = ship.bullets[j];
 
       if (
@@ -200,6 +200,7 @@ function checkBulletAlienCollision() {
       ) {
         alien.image = killImage.src;
 
+     
         setTimeout(() => {
           alienShip.ships.splice(i, 1);
           ship.bullets.splice(j, 1);
@@ -238,7 +239,8 @@ function updateBulletColor() {
 }
 
 function checkCollision() {
-  alienShip.bullets.forEach(bullet => {
+  for (let i = alienShip.bullets.length - 1; i >= 0; i--) {
+    const bullet = alienShip.bullets[i];
     if (
       bullet.x < ship.x + ship.width &&
       bullet.x + 5 > ship.x &&
@@ -246,18 +248,18 @@ function checkCollision() {
       bullet.y + 15 > ship.y
     ) {
       ship.lives--;
-      displayHit = true; // Display hit image
+      displayHit = true; 
       setTimeout(() => {
-        displayHit = false; // Reset after delay
-      }, 500); // Show hit image for 500ms
+        displayHit = false; 
+      }, 500); 
 
-      alienShip.bullets = alienShip.bullets.filter(b => b !== bullet);
+      alienShip.bullets.splice(i, 1); 
 
       alienShip.killCount = Math.max(alienShip.killCount - 1, 0); 
       updateBulletColor();
       updateKillCountDisplay();
     }
-  });
+  }
 }
 
 function endGame() {
@@ -302,12 +304,15 @@ function update() {
       ctx.drawImage(hitImage, ship.x, ship.y, ship.width, ship.height);
     }
 
-    if (displayReset) {
-      ctx.drawImage(resetImage, ship.x, ship.y, ship.width, ship.height);
-    }
-
     if (ship.lives <= 0) {
       endGame();
+    }
+
+    
+    if (alienShip.ships.length === 0) {
+      alienShip.wave++;
+      alienShip.aliensPerWave += 2; 
+      createAliens();
     }
   }
 
@@ -315,7 +320,7 @@ function update() {
   requestAnimationFrame(update);
 }
 
-createAliens();
+createAliens(); 
 update();
 
 
