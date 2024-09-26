@@ -211,19 +211,19 @@ function updateBulletColor() {
   if (alienShip.killCount >= 19) {
     bulletColor = 'green';
     bulletSpeed = 20;
-    ship.bulletCount = 4; //Quad
+    ship.bulletCount = 4; //4
   } else if (alienShip.killCount >= 9) {
     bulletColor = 'purple';
     bulletSpeed = 18;
-    ship.bulletCount = 3; //Triple 
+    ship.bulletCount = 3; //3
   } else if (alienShip.killCount >= 5) {
     bulletColor = 'yellow';
     bulletSpeed = 14;
-    ship.bulletCount = 2; //Double 
+    ship.bulletCount = 2; //2
   } else {
     bulletColor = 'blue';
     bulletSpeed = 7;
-    ship.bulletCount = 1; //default
+    ship.bulletCount = 1; //start
   }
 }
 
