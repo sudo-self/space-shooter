@@ -158,6 +158,7 @@ function createAliens() {
   }
 }
 
+
 function drawAliens() {
   alienShip.ships.forEach(alien => {
     ctx.drawImage(alien.image === killImage.src ? killImage : alienShip.image, alien.x, alien.y, alienShip.width, alienShip.height);
@@ -204,7 +205,6 @@ function moveAlienBullets() {
   alienShip.bullets = alienShip.bullets.filter(bullet => bullet.y < canvas.height);
 }
 
-// Checking for bullet-alien collisions
 function checkBulletAlienCollision() {
   for (let i = alienShip.ships.length - 1; i >= 0; i--) {
     const alien = alienShip.ships[i];
@@ -221,6 +221,13 @@ function checkBulletAlienCollision() {
         alienShip.ships.splice(i, 1); 
         updateBulletColor();
         updateKillCountDisplay();
+        
+        // Check if all aliens have been defeated
+        if (alienShip.ships.length === 0) {
+          alienShip.wave++; // Increment the wave
+          alienShip.aliensPerWave += 2; // Increase aliens for next wave
+          createAliens(); // Create a new wave of aliens
+        }
         break;
       }
     }
