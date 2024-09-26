@@ -276,80 +276,64 @@ function checkCollision() {
   }
 }
 
-// Handling wave completion
-function handleWaveCompletion() {
+// Wave completion logic and resetting alien ships
+function checkWaveCompletion() {
   if (alienShip.ships.length === 0) {
     alienShip.wave++;
     alienShip.aliensPerWave++;
-    alienShip.speed += 0.5; 
     createAliens();
   }
 }
 
-// Toggling pause state
+// Draw wave and kill count display
+function drawInfoDisplay() {
+  ctx.font = '20px Arial';
+  ctx.fillStyle = 'white';
+  ctx.fillText(`Wave: ${alienShip.wave}`, canvas.width - 100, 50);
+  ctx.fillText(`Kills: ${alienShip.killCount}`, canvas.width - 100, 80);
+}
+
+// Toggling game pause
 function togglePause() {
   pause = !pause;
-  document.getElementById('pauseText').style.display = pause ? 'block' : 'none';
+  document.getElementById('pauseMessage').style.display = pause ? 'block' : 'none';
 }
 
-// Checking game over condition
+// Game over logic
 function checkGameOver() {
   if (ship.lives <= 0) {
-    pause = true;
-    displayReset = true; 
+    displayReset = true;
     setTimeout(() => {
-      displayReset = false; 
-    }, 1000); 
-    resetGame();
+      displayReset = false;
+      ship.lives = 4;
+      alienShip.killCount = 0;
+      alienShip.wave = 1;
+      alienShip.aliensPerWave = 6;
+      ship.bulletCount = 1;
+      createAliens();
+    }, 2000);
   }
 }
 
-// Resetting the game
-function resetGame() {
-  ship.x = canvas.width / 2 - 40;
-  ship.y = canvas.height - 90;
-  ship.bullets = [];
-  ship.lives = 4;
-  alienShip.bullets = [];
-  alienShip.killCount = 0;
-  alienShip.wave = 1;
-  alienShip.aliensPerWave = 6;
-  alienShip.speed = 2;
-  createAliens();
-  updateKillCountDisplay();
-  updateBulletColor();
-}
 
-// Main game loop
 function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   if (!pause) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     handleMovement();
+    drawShip();
     moveBullets();
+    drawBullets();
     moveAliens();
+    drawAliens();
     moveAlienBullets();
+    drawAlienBullets();
     checkBulletAlienCollision();
     checkCollision();
-    handleWaveCompletion();
+    checkWaveCompletion();
+    drawLives();
+    drawInfoDisplay();
+    checkGameOver();
   }
-
-  drawShip();
-  drawBullets();
-  drawAliens();
-  drawAlienBullets();
-  drawLives();
-  updateKillCountDisplay();
-
-  if (displayHit) {
-    ctx.drawImage(hitImage, ship.x, ship.y, ship.width, ship.height);
-  }
-  if (displayReset) {
-    ctx.drawImage(resetImage, 0, 0, canvas.width, canvas.height); 
-  }
-
-  checkGameOver();
-
   requestAnimationFrame(gameLoop);
 }
 
