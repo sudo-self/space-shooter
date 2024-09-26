@@ -1,42 +1,61 @@
 body {
-  margin: 0;
-  overflow: hidden;
-  background-color: black;
+    margin: 0;
+    overflow: hidden;
+    background-color: black;
 }
 
 canvas {
-  display: block;
-  width: 100vw;
-  height: 100vh;
-  background-size: cover; 
-  background-position: center;
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover; 
+    background-position: center;
 }
 
+#header {
+    position: absolute; /* Allows positioning over canvas */
+    top: 10px; /* Adjust as needed */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust to center */
+    z-index: 10; /* Make sure it's above other elements */
+    text-align: center; /* Center text */
+}
+
+.github-button {
+    background-color: transparent; 
+    color: white;
+    padding: 10px 20px; 
+    border: 1px solid white; 
+    border-radius: 5px; 
+    cursor: pointer; 
+}
 
 #pauseMenu {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 300px;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  text-align: center;
-  display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    text-align: center;
+    display: none; 
 }
+
 #pauseMenu button {
-  padding: 10px 20px;
-  background-color: white;
-  color: black;
-  border: none;
-  cursor: pointer;
+    padding: 10px 20px;
+    background-color: white;
+    color: black;
+    border: none;
+    cursor: pointer;
 }
+
 #killCount {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  color: #39ff14;
-  font-size: 24px;
-  font-family: sans-serif;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: #39ff14;
+    font-size: 24px;
+    font-family: sans-serif;
 }
