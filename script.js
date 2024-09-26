@@ -1,9 +1,17 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Set canvas size
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
+// Function to update the background based on player quads
+function updateBackground() {
+  if (ship.bulletCount >= 4) {
+    canvas.style.backgroundImage = "url('./assets/space-background.gif')";
+  } else {
+    canvas.style.backgroundImage = ""; // Reset background
+  }
+}
 
 // Ship object with properties
 const ship = {
@@ -234,17 +242,16 @@ function updateKillCountDisplay() {
   document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
 }
 
-// Bullet color and speed upgrade logic based on kill count
 function updateBulletColor() {
-  if (alienShip.killCount >= 20) {
+  if (alienShip.killCount >= 19) {
     bulletColor = '#00FF26'; 
     bulletSpeed = 20;
-    ship.bulletCount = 4; // Quad bullets
-  } else if (alienShip.killCount >= 10) { 
-    bulletColor = '#BC13FE';
+    ship.bulletCount = 4; 
+  } else if (alienShip.killCount >= 9) {
+    bulletColor = '#BC13FE'; 
     bulletSpeed = 18;
     ship.bulletCount = 3;
-  } else if (alienShip.killCount >= 5) { 
+  } else if (alienShip.killCount >= 5) {
     bulletColor = '#FF11FF'; 
     bulletSpeed = 14;
     ship.bulletCount = 2; 
@@ -253,9 +260,12 @@ function updateBulletColor() {
     bulletSpeed = 7;
     ship.bulletCount = 1; 
   }
+
+
+  updateBackground();
 }
 
-// Checking for collisions between alien bullets and ship
+
 function checkCollision() {
   for (let i = alienShip.bullets.length - 1; i >= 0; i--) {
     const bullet = alienShip.bullets[i];
