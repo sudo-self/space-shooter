@@ -198,7 +198,7 @@ function createAliens() {
 // Draw alien ships
 function drawAliens() {
   alienShip.ships.forEach(alien => {
-    ctx.drawImage(alien.image, alien.x, alien.y, alienShip.width, alienShip.height);
+    ctx.drawImage(alienShip.image, alien.x, alien.y, alienShip.width, alienShip.height);
   });
 }
 
@@ -274,78 +274,7 @@ function checkBulletAlienCollision() {
 function updateBulletProgression() {
   if (alienShip.killCount >= 9) {
     bulletColor = 'purple';
-    bulletSpeed = 10;
-    ship.bulletCount = 3;
-  } else if (alienShip.killCount >= 6) {
-    bulletColor = 'red';
-    bulletSpeed = 9;
-    ship.bulletCount = 2;
-  } else if (alienShip.killCount >= 3) {
-    bulletColor = 'yellow';
-    bulletSpeed = 8;
-    ship.bulletCount = 1;
-  } else {
-    bulletColor = 'blue';
-    bulletSpeed = 7;
-    ship.bulletCount = 1;
-  }
-}
-
-// Function to toggle pause
-function togglePause() {
-  pause = !pause;
-}
-
-// Function to draw game over message
-function drawGameOver() {
-  ctx.fillStyle = 'red';
-  ctx.font = '48px Arial';
-  ctx.fillText('Game Over', canvas.width / 2 - 120, canvas.height / 2);
-}
-
-// Game loop
-function gameLoop() {
-  if (!pause && !gameOver) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawDebris();
-    moveDebris();
-    drawShip();
-    drawBullets();
-    moveBullets();
-    drawLives();
-    drawAliens();
-    moveAliens();
-    drawAlienBullets();
-    moveAlienBullets();
-    checkBulletAlienCollision();
-    spawnDebrisRandomly();
-    updateBackground();
-    
-    // Check game over condition
-    if (ship.lives <= 0) {
-      gameOver = true;
-    }
-  } else if (gameOver) {
-    drawGameOver();
-  }
-  requestAnimationFrame(gameLoop);
-}
-
-// Start the game once all images are loaded
-spaceDebrisImage.onload = function() {
-  shipImage.onload = function() {
-    alienShipImage.onload = function() {
-      hitImage.onload = function() {
-        resetImage.onload = function() {
-          killImage.onload = function() {
-            createAliens();
-            gameLoop();
-          };
-        };
-      };
-    };
-  };
-};
+    bulletSpeed =
 
 
 
