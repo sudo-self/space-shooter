@@ -195,22 +195,23 @@ function checkBulletAlienCollision() {
         bullet.y < alien.y + alienShip.height &&
         bullet.y + 15 > alien.y
       ) {
-     
-        alien.image = killImage.src; 
+  
+        alien.image = killImage.src;
 
-        
+       
         setTimeout(() => {
           alienShip.ships.splice(i, 1);
           ship.bullets.splice(j, 1);
           alienShip.killCount++;
           updateBulletColor();
           updateKillCountDisplay();
-        }, 200); 
+        }, 400); 
         break;
       }
     }
   }
 }
+
 
 function updateKillCountDisplay() {
   document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
