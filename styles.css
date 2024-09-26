@@ -3,14 +3,15 @@ body {
   overflow: hidden;
   background-color: black;
 }
+
 canvas {
   display: block;
   width: 100vw;
   height: 100vh;
-  background-image: url('./assets/space-background.jpg'); 
   background-size: cover; 
   background-position: center;
 }
+
 
 #pauseMenu {
   position: absolute;
