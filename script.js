@@ -12,11 +12,11 @@ shipImage.src = './assets/ship.webp';
 const alienShipImage = new Image();
 alienShipImage.src = './assets/ship_alien.webp';
 const hitImage = new Image();
-hitImage.src = './assets/hit.webp';
+hitImage.src = './assets/hit.webp';  // Correcting this
 const resetImage = new Image();
 resetImage.src = './assets/reset.webp';
 const killImage = new Image();
-killImage.src = './assets/kill.webp';
+killImage.src = './assets/kill.webp';  // Ensuring this image is shown briefly on alien destruction
 
 // Variables for debris and ship
 let debrisArray = [];
@@ -28,6 +28,7 @@ const alienBulletColor = 'red';
 const alienDoubleBulletColor = 'orange';
 let pause = false;
 let displayHit = false;
+let backgroundChanged = false;  // Track background change
 
 // Ship properties
 const ship = {
@@ -97,12 +98,14 @@ function spawnDebrisRandomly() {
   }
 }
 
-// Function to update background based on bullet count
+// Function to update background based on kill count
 function updateBackground() {
-  if (ship.bulletCount >= 4) {
-    canvas.style.backgroundImage = "url('./assets/space-background.gif')";
-  } else {
-    canvas.style.backgroundImage = ""; 
+  if (alienShip.killCount >= 9 && !backgroundChanged) {
+    canvas.style.backgroundImage = "url('./assets/space-background.gif')";  // Change background after certain kills
+    backgroundChanged = true;  // Ensure background changes only once
+  } else if (alienShip.killCount < 9 && backgroundChanged) {
+    canvas.style.backgroundImage = "";  // Revert to normal if below kill count
+    backgroundChanged = false;
   }
 }
 
@@ -196,6 +199,14 @@ function drawAliens() {
   });
 }
 
+// Show "kill" image briefly when an alien is destroyed
+function showKillEffect(x, y) {
+  ctx.drawImage(killImage, x, y, alienShip.width, alienShip.height);
+  setTimeout(() => {
+    ctx.clearRect(x, y, alienShip.width, alienShip.height);  // Clear after showing "kill" effect
+  }, 500);
+}
+
 // Move alien ships and fire bullets
 function moveAliens() {
   alienShip.ships.forEach(alien => {
@@ -245,41 +256,41 @@ function checkBulletAlienCollision() {
         bullet.y < alien.y + alienShip.height &&
         bullet.y + 15 > alien.y
       ) {
+        ship.bullets.splice(j, 1);  // Remove the bullet
+        alienShip.ships.splice(i, 1);  // Remove the alien
         alienShip.killCount++;
-        ship.bullets.splice(j, 1);
-        alienShip.ships.splice(i, 1);
-        updateBulletColor();
-        updateKillCountDisplay();
-        break;
+        showKillEffect(alien.x, alien.y);  // Show the kill effect
+        updateBulletProgression();  // Update bullet color and speed
+        return;
       }
     }
   }
 }
 
-// Display kill count
-function updateKillCountDisplay() {
-  document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
-}
-
-// Update bullet color based on kills
-function updateBulletColor() {
-  if (alienShip.killCount >= 19) {
-    bulletColor = '#00FF26';
-    bulletSpeed = 20;
-    ship.bulletCount = 4;
-  } else if (alienShip.killCount >= 9) {
-    bulletColor = '#BC13FE';
-    bulletSpeed = 18;
+// Function to update bullet progression
+function updateBulletProgression() {
+  if (alienShip.killCount >= 9) {
+    bulletColor = 'purple';
+    bulletSpeed = 10;
     ship.bulletCount = 3;
-  } else if (alienShip.killCount >= 5) {
-    bulletColor = '#FF11FF';
-    bulletSpeed = 14;
+  } else if (alienShip.killCount >= 6) {
+    bulletColor = 'red';
+    bulletSpeed = 9;
     ship.bulletCount = 2;
+  } else if (alienShip.killCount >= 3) {
+    bulletColor = 'yellow';
+    bulletSpeed = 8;
+    ship.bulletCount = 1;
   } else {
-    bulletColor = '#04d9FF';
+    bulletColor = 'blue';
     bulletSpeed = 7;
     ship.bulletCount = 1;
   }
+}
+
+// Toggle pause functionality
+function togglePause() {
+  pause = !pause;
 }
 
 // Game loop
@@ -318,6 +329,7 @@ spaceDebrisImage.onload = function() {
     };
   };
 };
+
 
 
 
