@@ -31,6 +31,10 @@ const alienShip = {
 };
 alienShip.image.src = './assets/ship_alien.webp';
 
+const hitImage = new Image();
+hitImage.src = './assets/hit.webp'; // Image for when the ship takes a hit
+const resetImage = new Image();
+resetImage.src = './assets/reset.webp'; // Image for when the ship is being reset
 const killImage = new Image();
 killImage.src = './assets/kill.webp';
 
@@ -305,9 +309,26 @@ createAliens();
 gameLoop();
 
 document.getElementById('resumeButton').addEventListener('click', () => {
-  pause = false;
-  drawPauseMenu();
+  togglePause();
 });
+
+document.getElementById('restartButton').addEventListener('click', () => {
+  resetGame();
+});
+
+function resetGame() {
+  ship.lives = 4;
+  ship.bullets = [];
+  alienShip.bullets = [];
+  alienShip.killCount = 0;
+  alienShip.wave = 1;
+  alienShip.aliensPerWave = 6;
+  createAliens();
+  pause = false;
+  updateKillCountDisplay();
+  drawPauseMenu();
+}
+
 
 
 
