@@ -198,16 +198,16 @@ function checkBulletAlienCollision() {
         bullet.y < alien.y + alienShip.height &&
         bullet.y + 15 > alien.y
       ) {
-        alien.image = killImage.src;
+      
 
-     
-        setTimeout(() => {
-          alienShip.ships.splice(i, 1);
-          ship.bullets.splice(j, 1);
-          alienShip.killCount++;
-          updateBulletColor();
-          updateKillCountDisplay();
-        }, 400); 
+        alienShip.killCount++;
+        ship.bullets.splice(j, 1);
+        alienShip.ships.splice(i, 1); 
+
+        updateBulletColor();
+        updateKillCountDisplay();
+
+      
         break;
       }
     }
@@ -219,25 +219,24 @@ function updateKillCountDisplay() {
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 19) {
-    bulletColor = '#00FF26'; 
+  if (alienShip.killCount >= 20) { // Change to 20 for quad bullets
+    bulletColor = '#00FF26'; // Change this color if needed
     bulletSpeed = 20;
-    ship.bulletCount = 4; 
-  } else if (alienShip.killCount >= 9) {
-    bulletColor = '#BC13FE'; 
+    ship.bulletCount = 4; // Quad bullets
+  } else if (alienShip.killCount >= 10) { // Change to 10 for triple bullets
+    bulletColor = '#BC13FE'; // Change this color if needed
     bulletSpeed = 18;
-    ship.bulletCount = 3;
-  } else if (alienShip.killCount >= 5) {
-    bulletColor = '#FF11FF'; 
+    ship.bulletCount = 3; // Triple bullets
+  } else if (alienShip.killCount >= 5) { // Change to 5 for double bullets
+    bulletColor = '#FF11FF'; // Change this color if needed
     bulletSpeed = 14;
-    ship.bulletCount = 2; 
+    ship.bulletCount = 2; // Double bullets
   } else {
-    bulletColor = '#04d9FF'; 
+    bulletColor = '#04d9FF'; // Default color
     bulletSpeed = 7;
-    ship.bulletCount = 1; 
+    ship.bulletCount = 1; // Single bullet
   }
 }
-
 function checkCollision() {
   for (let i = alienShip.bullets.length - 1; i >= 0; i--) {
     const bullet = alienShip.bullets[i];
