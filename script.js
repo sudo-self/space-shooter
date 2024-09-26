@@ -219,24 +219,25 @@ function updateKillCountDisplay() {
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 20) { // Change to 20 for quad bullets
-    bulletColor = '#00FF26'; // Change this color if needed
+  if (alienShip.killCount >= 20) {
+    bulletColor = '#00FF26'; 
     bulletSpeed = 20;
     ship.bulletCount = 4; // Quad bullets
-  } else if (alienShip.killCount >= 10) { // Change to 10 for triple bullets
-    bulletColor = '#BC13FE'; // Change this color if needed
+  } else if (alienShip.killCount >= 10) { 
+    bulletColor = '#BC13FE';
     bulletSpeed = 18;
-    ship.bulletCount = 3; // Triple bullets
-  } else if (alienShip.killCount >= 5) { // Change to 5 for double bullets
-    bulletColor = '#FF11FF'; // Change this color if needed
+    ship.bulletCount = 3;
+  } else if (alienShip.killCount >= 5) { 
+    bulletColor = '#FF11FF'; 
     bulletSpeed = 14;
-    ship.bulletCount = 2; // Double bullets
+    ship.bulletCount = 2; 
   } else {
-    bulletColor = '#04d9FF'; // Default color
+    bulletColor = '#04d9FF'; 
     bulletSpeed = 7;
-    ship.bulletCount = 1; // Single bullet
+    ship.bulletCount = 1; 
   }
 }
+
 function checkCollision() {
   for (let i = alienShip.bullets.length - 1; i >= 0; i--) {
     const bullet = alienShip.bullets[i];
