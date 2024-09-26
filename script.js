@@ -51,6 +51,8 @@ const keys = {
 };
 
 let pause = false;
+let displayHit = false;
+let displayReset = false;
 
 document.addEventListener('keydown', event => {
   if (event.code in keys) {
@@ -244,9 +246,11 @@ function checkCollision() {
       bullet.y + 15 > ship.y
     ) {
       ship.lives--;
-      if (ship.lives <= 0) {
-        endGame();
-      }
+      displayHit = true; // Display hit image
+      setTimeout(() => {
+        displayHit = false; // Reset after delay
+      }, 500); // Show hit image for 500ms
+
       alienShip.bullets = alienShip.bullets.filter(b => b !== bullet);
 
       alienShip.killCount = Math.max(alienShip.killCount - 1, 0); 
@@ -286,48 +290,34 @@ function update() {
     moveAlienBullets();
     checkBulletAlienCollision();
     checkCollision();
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawShip();
     drawBullets();
     drawAliens();
     drawAlienBullets();
     drawLives();
-    if (alienShip.ships.length === 0) {
-      alienShip.wave++;
-      alienShip.aliensPerWave += 2; 
-      createAliens();
+
+    if (displayHit) {
+      ctx.drawImage(hitImage, ship.x, ship.y, ship.width, ship.height);
+    }
+
+    if (displayReset) {
+      ctx.drawImage(resetImage, ship.x, ship.y, ship.width, ship.height);
+    }
+
+    if (ship.lives <= 0) {
+      endGame();
     }
   }
-}
 
-function gameLoop() {
-  update();
-  requestAnimationFrame(gameLoop);
+  drawPauseMenu();
+  requestAnimationFrame(update);
 }
 
 createAliens();
-gameLoop();
+update();
 
-document.getElementById('resumeButton').addEventListener('click', () => {
-  togglePause();
-});
-
-document.getElementById('restartButton').addEventListener('click', () => {
-  resetGame();
-});
-
-function resetGame() {
-  ship.lives = 4;
-  ship.bullets = [];
-  alienShip.bullets = [];
-  alienShip.killCount = 0;
-  alienShip.wave = 1;
-  alienShip.aliensPerWave = 6;
-  createAliens();
-  pause = false;
-  updateKillCountDisplay();
-  drawPauseMenu();
-}
 
 
 
