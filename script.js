@@ -209,23 +209,24 @@ function updateKillCountDisplay() {
 
 function updateBulletColor() {
   if (alienShip.killCount >= 19) {
-    bulletColor = 'green';
+    bulletColor = '#39FF14'; 
     bulletSpeed = 20;
-    ship.bulletCount = 4; //4
+    ship.bulletCount = 4; 
   } else if (alienShip.killCount >= 9) {
-    bulletColor = 'purple';
+    bulletColor = '#9400D3'; 
     bulletSpeed = 18;
-    ship.bulletCount = 3; //3
+    ship.bulletCount = 3;
   } else if (alienShip.killCount >= 5) {
-    bulletColor = 'yellow';
+    bulletColor = '#FFFF00'; 
     bulletSpeed = 14;
-    ship.bulletCount = 2; //2
+    ship.bulletCount = 2; 
   } else {
-    bulletColor = 'blue';
+    bulletColor = '#00FFFF'; 
     bulletSpeed = 7;
-    ship.bulletCount = 1; //start
+    ship.bulletCount = 1; 
   }
 }
+
 
 function checkCollision() {
   alienShip.bullets.forEach(bullet => {
