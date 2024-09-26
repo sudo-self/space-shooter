@@ -142,9 +142,10 @@ function createAliens() {
 
 function drawAliens() {
   alienShip.ships.forEach(alien => {
-    ctx.drawImage(alienShip.image, alien.x, alien.y, alienShip.width, alienShip.height);
+    ctx.drawImage(alien.image === killImage.src ? killImage : alienShip.image, alien.x, alien.y, alienShip.width, alienShip.height);
   });
 }
+
 
 function moveAliens() {
   alienShip.ships.forEach(alien => {
