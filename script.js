@@ -42,6 +42,7 @@ let bulletSpeed = 7;
 let bulletColor = 'blue';
 const alienBulletSpeed = 5;
 const alienBulletColor = 'red';
+const alienDoubleBulletColor = 'orange'; // New bullet color for double bullets
 
 const keys = {
   ArrowLeft: false,
@@ -154,12 +155,27 @@ function moveAliens() {
   alienShip.ships.forEach(alien => {
     alien.y += alienShip.speed;
 
-    if (!alien.hasFired && alien.y > 0) { 
-      if (Math.random() < 0.05) { 
-        alienShip.bullets.push({
-          x: alien.x + alienShip.width / 2 - 2.5,
-          y: alien.y + alienShip.height
-        });
+    if (!alien.hasFired && alien.y > 0) {
+      const firingChance = alienShip.wave >= 2 ? 0.1 : 0.05; // Increase firing chance from wave 2
+      
+      if (Math.random() < firingChance) {
+        if (alienShip.wave >= 2 && Math.random() < 0.5) { // 50% chance to shoot double orange bullets
+          alienShip.bullets.push({
+            x: alien.x + alienShip.width / 2 - 2.5,
+            y: alien.y + alienShip.height,
+            color: alienDoubleBulletColor // Set color for double bullets
+          });
+          alienShip.bullets.push({
+            x: alien.x + alienShip.width / 2 - 2.5,
+            y: alien.y + alienShip.height,
+            color: alienDoubleBulletColor // Set color for double bullets
+          });
+        } else {
+          alienShip.bullets.push({
+            x: alien.x + alienShip.width / 2 - 2.5,
+            y: alien.y + alienShip.height
+          });
+        }
         alien.hasFired = true;
       }
     }
@@ -173,8 +189,8 @@ function moveAliens() {
 }
 
 function drawAlienBullets() {
-  ctx.fillStyle = alienBulletColor;
   alienShip.bullets.forEach(bullet => {
+    ctx.fillStyle = bullet.color || alienBulletColor; // Use bullet color if defined
     ctx.fillRect(bullet.x, bullet.y, 5, 15);
   });
 }
@@ -198,16 +214,12 @@ function checkBulletAlienCollision() {
         bullet.y < alien.y + alienShip.height &&
         bullet.y + 15 > alien.y
       ) {
-      
-
         alienShip.killCount++;
         ship.bullets.splice(j, 1);
         alienShip.ships.splice(i, 1); 
 
         updateBulletColor();
         updateKillCountDisplay();
-
-      
         break;
       }
     }
@@ -255,73 +267,51 @@ function checkCollision() {
 
       alienShip.bullets.splice(i, 1); 
 
-      alienShip.killCount = Math.max(alienShip.killCount - 1, 0); 
-      updateBulletColor();
+      alienShip.killCount = Math.max(alienShip.killCount - 1, 0);
       updateKillCountDisplay();
+      if (ship.lives === 0) {
+        resetGame(); 
+      }
     }
   }
 }
 
-function endGame() {
-  pause = true;
-  ctx.fillStyle = 'white';
-  ctx.font = '48px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
-}
-
-function drawPauseMenu() {
-  const pauseMenu = document.getElementById('pauseMenu');
-  if (pause) {
-    pauseMenu.style.display = 'block';
-  } else {
-    pauseMenu.style.display = 'none';
-  }
+function resetGame() {
+  ship.lives = 4;
+  alienShip.killCount = 0;
+  updateKillCountDisplay();
+  alienShip.ships = [];
+  createAliens();
 }
 
 function togglePause() {
   pause = !pause;
-  drawPauseMenu();
 }
 
-function update() {
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  handleMovement();
+  drawShip();
+  drawBullets();
+  moveBullets();
+  drawLives();
+
+  moveAliens();
+  drawAliens();
+  drawAlienBullets();
+  moveAlienBullets();
+
+  checkBulletAlienCollision();
+  checkCollision();
+
   if (!pause) {
-    handleMovement();
-    moveBullets();
-    moveAliens();
-    moveAlienBullets();
-    checkBulletAlienCollision();
-    checkCollision();
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawShip();
-    drawBullets();
-    drawAliens();
-    drawAlienBullets();
-    drawLives();
-
-    if (displayHit) {
-      ctx.drawImage(hitImage, ship.x, ship.y, ship.width, ship.height);
-    }
-
-    if (ship.lives <= 0) {
-      endGame();
-    }
-
-    
-    if (alienShip.ships.length === 0) {
-      alienShip.wave++;
-      alienShip.aliensPerWave += 2; 
-      createAliens();
-    }
+    requestAnimationFrame(gameLoop);
   }
-
-  drawPauseMenu();
-  requestAnimationFrame(update);
 }
 
-createAliens(); 
-update();
+createAliens();
+gameLoop();
 
 
 
