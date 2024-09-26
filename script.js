@@ -12,8 +12,10 @@ const ship = {
   speed: 7,
   image: new Image(),
   bullets: [],
-  lives: 4
+  lives: 4,
+  bulletCount: 1 
 };
+
 ship.image.src = './assets/ship.webp';
 
 const alienShip = {
