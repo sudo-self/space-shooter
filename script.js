@@ -274,10 +274,58 @@ function checkBulletAlienCollision() {
 function updateBulletProgression() {
   if (alienShip.killCount >= 9) {
     bulletColor = 'purple';
-    bulletSpeed =
+    bulletSpeed = 10; // Increase bullet speed after 9 kills
+    ship.bulletCount = 2; // Increase bullet count to 2
+  }
+  if (alienShip.killCount >= 18) {
+    bulletColor = 'cyan';
+    bulletSpeed = 12; // Further increase bullet speed after 18 kills
+    ship.bulletCount = 3; // Increase bullet count to 3
+  }
+  if (alienShip.killCount >= 27) {
+    bulletColor = 'magenta';
+    bulletSpeed = 15; // Further increase bullet speed after 27 kills
+    ship.bulletCount = 4; // Increase bullet count to 4
+  }
+}
 
+// Main game loop
+function gameLoop() {
+  if (!pause && !gameOver) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+    handleMovement(); // Handle player movement
+    spawnDebrisRandomly(); // Randomly spawn debris
+    moveDebris(); // Move debris
+    drawDebris(); // Draw debris
+    drawShip(); // Draw player ship
+    moveBullets(); // Move bullets
+    drawBullets(); // Draw bullets
+    drawLives(); // Draw lives
+    moveAliens(); // Move alien ships
+    drawAliens(); // Draw alien ships
+    moveAlienBullets(); // Move alien bullets
+    drawAlienBullets(); // Draw alien bullets
+    checkBulletAlienCollision(); // Check for collisions
+    updateBackground(); // Update background
+    requestAnimationFrame(gameLoop); // Request next animation frame
+  }
+}
 
+// Start game
+function startGame() {
+  createAliens(); // Create the first wave of aliens
+  gameLoop(); // Start the main game loop
+}
 
+// Pause and resume game
+function togglePause() {
+  pause = !pause;
+  const pauseMenu = document.getElementById('pauseMenu');
+  pauseMenu.style.display = pause ? 'block' : 'none';
+}
+
+// Start the game on window load
+window.onload = startGame;
 
 
 
