@@ -23,7 +23,9 @@ const alienShip = {
   image: new Image(),
   ships: [],
   bullets: [],
-  killCount: 0
+  killCount: 0,
+  wave: 1,
+  aliensPerWave: 6,
 };
 alienShip.image.src = './assets/ship_alien.webp';
 
@@ -32,7 +34,6 @@ killImage.src = './assets/kill.webp';
 
 let bulletSpeed = 7;
 let bulletColor = 'blue';
-
 const alienBulletSpeed = 5;
 const alienBulletColor = 'red';
 
@@ -44,7 +45,6 @@ const keys = {
 };
 
 let pause = false;
-let wave = 1;
 
 document.addEventListener('keydown', event => {
   if (event.code in keys) {
@@ -84,15 +84,7 @@ function handleMovement() {
 
 function shootBullet() {
   if (!pause) {
-    if (alienShip.killCount >= 9) {
-      ship.bullets.push({ x: ship.x + 10, y: ship.y });
-      ship.bullets.push({ x: ship.x + ship.width - 30, y: ship.y });
-    } else {
-      ship.bullets.push({
-        x: ship.x + ship.width / 2 - 2.5,
-        y: ship.y
-      });
-    }
+    ship.bullets.push({ x: ship.x + ship.width / 2 - 2.5, y: ship.y });
   }
 }
 
@@ -127,17 +119,13 @@ function drawLives() {
 }
 
 function createAliens() {
-  const numberOfWaves = 6;
-  const aliensPerWave = 12;
   alienShip.ships = [];
-  for (let waveNum = 0; waveNum < numberOfWaves; waveNum++) {
-    for (let i = 0; i < aliensPerWave; i++) {
-      alienShip.ships.push({
-        x: Math.random() * (canvas.width - alienShip.width),
-        y: -Math.random() * canvas.height,
-        hasFired: false 
-      });
-    }
+  for (let i = 0; i < alienShip.aliensPerWave; i++) {
+    alienShip.ships.push({
+      x: Math.random() * (canvas.width - alienShip.width),
+      y: -Math.random() * canvas.height / 2,
+      hasFired: false 
+    });
   }
 }
 
@@ -151,21 +139,8 @@ function moveAliens() {
   alienShip.ships.forEach(alien => {
     alien.y += alienShip.speed;
 
- 
-    if (!alien.hasFired) {
-      if (wave === 1 && Math.random() < 0.02) {
-        alienShip.bullets.push({
-          x: alien.x + alienShip.width / 2 - 2.5,
-          y: alien.y + alienShip.height
-        });
-        alien.hasFired = true;
-      } else if (wave === 2 && Math.random() < 0.05) {
-        alienShip.bullets.push({
-          x: alien.x + alienShip.width / 2 - 2.5,
-          y: alien.y + alienShip.height
-        });
-        alien.hasFired = true;
-      } else if (wave >= 3 && Math.random() < 0.1) {
+    if (!alien.hasFired && alien.y > 0) { 
+      if (Math.random() < 0.05) { 
         alienShip.bullets.push({
           x: alien.x + alienShip.width / 2 - 2.5,
           y: alien.y + alienShip.height
@@ -174,9 +149,8 @@ function moveAliens() {
       }
     }
 
-
     if (alien.y >= canvas.height) {
-      alien.hasFired = false;
+      alien.hasFired = false; 
     }
   });
 
@@ -213,7 +187,6 @@ function checkBulletAlienCollision() {
         ship.bullets.splice(j, 1);
         alienShip.killCount++;
         updateBulletColor();
-        drawKillImage(alien.x, alien.y);
         updateKillCountDisplay();
         break;
       }
@@ -221,62 +194,18 @@ function checkBulletAlienCollision() {
   }
 }
 
-function drawKillImage(x, y) {
-  ctx.drawImage(killImage, x, y, 50, 50);
-}
-
 function updateKillCountDisplay() {
   document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 13) {
+  if (alienShip.killCount >= 10) {
     bulletColor = 'purple';
     bulletSpeed = 18;
-    enableQuads();
-  } else if (alienShip.killCount >= 9) {
-    bulletColor = 'blue';
-    bulletSpeed = 16;
-  } else if (alienShip.killCount >= 6) {
+  } else if (alienShip.killCount >= 5) {
     bulletColor = 'yellow';
     bulletSpeed = 14;
   }
-}
-
-function enableQuads() {
-  const quadBullets = [];
-
-  for (let i = 0; i < 4; i++) {
-    let quadBullet = createBullet();
-    quadBullet.direction = adjustDirection(i);
-    quadBullet.speed = bulletSpeed;
-    quadBullets.push(quadBullet);
-  }
-
-  game.bullets.push(...quadBullets);
-}
-
-function adjustDirection(index) {
-  switch (index) {
-    case 0: return { x: -0.5, y: -1 };
-    case 1: return { x: -0.25, y: -1 };
-    case 2: return { x: 0.25, y: -1 };
-    case 3: return { x: 0.5, y: -1 };
-  }
-}
-
-function createBullet() {
-  return {
-    position: { x: player.position.x, y: player.position.y },
-    speed: bulletSpeed,
-    direction: { x: 0, y: 0 },
-    color: bulletColor,
-    size: 5,
-    update: function() {
-      this.position.x += this.direction.x * this.speed;
-      this.position.y += this.direction.y * this.speed;
-    }
-  };
 }
 
 function checkCollision() {
@@ -331,6 +260,11 @@ function update() {
     drawAliens();
     drawAlienBullets();
     drawLives();
+    if (alienShip.ships.length === 0) {
+      alienShip.wave++;
+      alienShip.aliensPerWave += 2; 
+      createAliens();
+    }
   }
 }
 
@@ -341,6 +275,7 @@ function gameLoop() {
 
 createAliens();
 gameLoop();
+
 
 
 
