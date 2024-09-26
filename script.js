@@ -96,7 +96,6 @@ function shootBullet() {
   }
 }
 
-
 function drawShip() {
   ctx.drawImage(ship.image, ship.x, ship.y, ship.width, ship.height);
 }
@@ -139,13 +138,11 @@ function createAliens() {
   }
 }
 
-
 function drawAliens() {
   alienShip.ships.forEach(alien => {
     ctx.drawImage(alien.image === killImage.src ? killImage : alienShip.image, alien.x, alien.y, alienShip.width, alienShip.height);
   });
 }
-
 
 function moveAliens() {
   alienShip.ships.forEach(alien => {
@@ -195,10 +192,8 @@ function checkBulletAlienCollision() {
         bullet.y < alien.y + alienShip.height &&
         bullet.y + 15 > alien.y
       ) {
-  
         alien.image = killImage.src;
 
-       
         setTimeout(() => {
           alienShip.ships.splice(i, 1);
           ship.bullets.splice(j, 1);
@@ -211,7 +206,6 @@ function checkBulletAlienCollision() {
     }
   }
 }
-
 
 function updateKillCountDisplay() {
   document.getElementById('killCount').innerText = `Kills: ${alienShip.killCount}`;
@@ -237,7 +231,6 @@ function updateBulletColor() {
   }
 }
 
-
 function checkCollision() {
   alienShip.bullets.forEach(bullet => {
     if (
@@ -252,14 +245,12 @@ function checkCollision() {
       }
       alienShip.bullets = alienShip.bullets.filter(b => b !== bullet);
 
-    
       alienShip.killCount = Math.max(alienShip.killCount - 1, 0); 
       updateBulletColor();
       updateKillCountDisplay();
     }
   });
 }
-
 
 function endGame() {
   pause = true;
@@ -270,10 +261,11 @@ function endGame() {
 }
 
 function drawPauseMenu() {
+  const pauseMenu = document.getElementById('pauseMenu');
   if (pause) {
-    document.getElementById('pauseMenu').style.display = 'block';
+    pauseMenu.style.display = 'block';
   } else {
-    document.getElementById('pauseMenu').style.display = 'none';
+    pauseMenu.style.display = 'none';
   }
 }
 
@@ -311,6 +303,12 @@ function gameLoop() {
 
 createAliens();
 gameLoop();
+
+document.getElementById('resumeButton').addEventListener('click', () => {
+  pause = false;
+  drawPauseMenu();
+});
+
 
 
 
