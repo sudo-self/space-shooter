@@ -271,76 +271,73 @@ function checkCollision() {
       alienShip.bullets.splice(i, 1); 
       alienShip.killCount = Math.max(alienShip.killCount - 5, 0);
       updateBulletColor();
-      break;
+      break; 
     }
   }
-}
-
-// Wave completion logic and resetting alien ships
-function checkWaveCompletion() {
-  if (alienShip.ships.length === 0) {
-    alienShip.wave++;
-    alienShip.aliensPerWave++;
-    createAliens();
+  
+  if (ship.lives <= 0) {
+    displayReset = true; 
+    resetGame();
   }
 }
 
-// Draw wave and kill count display
-function drawInfoDisplay() {
-  ctx.font = '20px Arial';
-  ctx.fillStyle = 'white';
-  ctx.fillText(`Wave: ${alienShip.wave}`, canvas.width - 100, 50);
-  ctx.fillText(`Kills: ${alienShip.killCount}`, canvas.width - 100, 80);
+// Resetting the game state
+function resetGame() {
+  ship.lives = 4;
+  alienShip.killCount = 0;
+  ship.bullets = [];
+  alienShip.bullets = [];
+  createAliens();
+  updateKillCountDisplay();
 }
 
-// Toggling game pause
+// Drawing the hit and reset effects
+function drawEffects() {
+  if (displayHit) {
+    ctx.drawImage(hitImage, ship.x, ship.y, ship.width, ship.height);
+  }
+  if (displayReset) {
+    ctx.drawImage(resetImage, canvas.width / 2 - 50, canvas.height / 2 - 50, 100, 100);
+  }
+}
+
+// Function to toggle pause state
 function togglePause() {
   pause = !pause;
-  document.getElementById('pauseMessage').style.display = pause ? 'block' : 'none';
 }
 
-// Game over logic
-function checkGameOver() {
-  if (ship.lives <= 0) {
-    displayReset = true;
-    setTimeout(() => {
-      displayReset = false;
-      ship.lives = 4;
-      alienShip.killCount = 0;
-      alienShip.wave = 1;
-      alienShip.aliensPerWave = 6;
-      ship.bulletCount = 1;
-      createAliens();
-    }, 2000);
+// Draw and update game elements
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); 
+  drawShip();
+  drawBullets();
+  drawLives();
+  drawAliens();
+  drawAlienBullets();
+  drawEffects(); // Draw hit and reset effects
+
+  if (pause) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '30px Arial';
+    ctx.fillText('Paused', canvas.width / 2 - 50, canvas.height / 2);
+    return;
   }
+
+  handleMovement();
+  moveBullets();
+  moveAliens();
+  moveAlienBullets();
+  checkBulletAlienCollision();
+  checkCollision();
+
+  requestAnimationFrame(draw);
 }
 
-
-function gameLoop() {
-  if (!pause) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    handleMovement();
-    drawShip();
-    moveBullets();
-    drawBullets();
-    moveAliens();
-    drawAliens();
-    moveAlienBullets();
-    drawAlienBullets();
-    checkBulletAlienCollision();
-    checkCollision();
-    checkWaveCompletion();
-    drawLives();
-    drawInfoDisplay();
-    checkGameOver();
-  }
-  requestAnimationFrame(gameLoop);
-}
-
+// Start the game
 createAliens();
-gameLoop();
-
-
+draw();
 
 
 
