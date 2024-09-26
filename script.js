@@ -84,9 +84,16 @@ function handleMovement() {
 
 function shootBullet() {
   if (!pause) {
-    ship.bullets.push({ x: ship.x + ship.width / 2 - 2.5, y: ship.y });
+    const spacing = 10; 
+    for (let i = 0; i < ship.bulletCount; i++) {
+      ship.bullets.push({
+        x: ship.x + ship.width / 2 - 2.5 - ((ship.bulletCount - 1) * spacing) / 2 + i * spacing,
+        y: ship.y
+      });
+    }
   }
 }
+
 
 function drawShip() {
   ctx.drawImage(ship.image, ship.x, ship.y, ship.width, ship.height);
@@ -199,12 +206,22 @@ function updateKillCountDisplay() {
 }
 
 function updateBulletColor() {
-  if (alienShip.killCount >= 10) {
+  if (alienShip.killCount >= 19) {
+    bulletColor = 'green';
+    bulletSpeed = 20;
+    ship.bulletCount = 4; //Quad
+  } else if (alienShip.killCount >= 9) {
     bulletColor = 'purple';
     bulletSpeed = 18;
+    ship.bulletCount = 3; //Triple 
   } else if (alienShip.killCount >= 5) {
     bulletColor = 'yellow';
     bulletSpeed = 14;
+    ship.bulletCount = 2; //Double 
+  } else {
+    bulletColor = 'blue';
+    bulletSpeed = 7;
+    ship.bulletCount = 1; //default
   }
 }
 
@@ -221,9 +238,15 @@ function checkCollision() {
         endGame();
       }
       alienShip.bullets = alienShip.bullets.filter(b => b !== bullet);
+
+    
+      alienShip.killCount = Math.max(alienShip.killCount - 1, 0); 
+      updateBulletColor();
+      updateKillCountDisplay();
     }
   });
 }
+
 
 function endGame() {
   pause = true;
