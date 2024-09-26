@@ -13,12 +13,12 @@ canvas {
 }
 
 #header {
-    position: absolute; /* Allows positioning over canvas */
-    top: 10px; /* Adjust as needed */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust to center */
-    z-index: 10; /* Make sure it's above other elements */
-    text-align: center; /* Center text */
+    position: absolute; /
+    top: 10px; 
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    text-align: center;
 }
 
 .github-button {
