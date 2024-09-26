@@ -12,11 +12,11 @@ shipImage.src = './assets/ship.webp';
 const alienShipImage = new Image();
 alienShipImage.src = './assets/ship_alien.webp';
 const hitImage = new Image();
-hitImage.src = './assets/hit.webp';  // Correcting this
+hitImage.src = './assets/hit.webp';
 const resetImage = new Image();
 resetImage.src = './assets/reset.webp';
 const killImage = new Image();
-killImage.src = './assets/kill.webp';  // Ensuring this image is shown briefly on alien destruction
+killImage.src = './assets/kill.webp';
 
 // Variables for debris and ship
 let debrisArray = [];
@@ -28,7 +28,10 @@ const alienBulletColor = 'red';
 const alienDoubleBulletColor = 'orange';
 let pause = false;
 let displayHit = false;
-let backgroundChanged = false;  // Track background change
+let backgroundChanged = false;
+
+// Game Over variables
+let gameOver = false;
 
 // Ship properties
 const ship = {
@@ -101,10 +104,10 @@ function spawnDebrisRandomly() {
 // Function to update background based on kill count
 function updateBackground() {
   if (alienShip.killCount >= 9 && !backgroundChanged) {
-    canvas.style.backgroundImage = "url('./assets/space-background.gif')";  // Change background after certain kills
-    backgroundChanged = true;  // Ensure background changes only once
+    canvas.style.backgroundImage = "url('./assets/space-background.gif')";
+    backgroundChanged = true;
   } else if (alienShip.killCount < 9 && backgroundChanged) {
-    canvas.style.backgroundImage = "";  // Revert to normal if below kill count
+    canvas.style.backgroundImage = "";
     backgroundChanged = false;
   }
 }
@@ -113,7 +116,7 @@ function updateBackground() {
 document.addEventListener('keydown', event => {
   if (event.code in keys) keys[event.code] = true;
 
-  if (event.code === 'Space' && !pause) {
+  if (event.code === 'Space' && !pause && !gameOver) {
     event.preventDefault();
     shootBullet();
   }
@@ -203,7 +206,7 @@ function drawAliens() {
 function showKillEffect(x, y) {
   ctx.drawImage(killImage, x, y, alienShip.width, alienShip.height);
   setTimeout(() => {
-    ctx.clearRect(x, y, alienShip.width, alienShip.height);  // Clear after showing "kill" effect
+    ctx.clearRect(x, y, alienShip.width, alienShip.height);
   }, 500);
 }
 
@@ -288,14 +291,21 @@ function updateBulletProgression() {
   }
 }
 
-// Toggle pause functionality
+// Function to toggle pause
 function togglePause() {
   pause = !pause;
 }
 
+// Function to draw game over message
+function drawGameOver() {
+  ctx.fillStyle = 'red';
+  ctx.font = '48px Arial';
+  ctx.fillText('Game Over', canvas.width / 2 - 120, canvas.height / 2);
+}
+
 // Game loop
 function gameLoop() {
-  if (!pause) {
+  if (!pause && !gameOver) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawDebris();
     moveDebris();
@@ -310,6 +320,13 @@ function gameLoop() {
     checkBulletAlienCollision();
     spawnDebrisRandomly();
     updateBackground();
+    
+    // Check game over condition
+    if (ship.lives <= 0) {
+      gameOver = true;
+    }
+  } else if (gameOver) {
+    drawGameOver();
   }
   requestAnimationFrame(gameLoop);
 }
