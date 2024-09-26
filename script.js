@@ -4,6 +4,48 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+const spaceDebrisImage = new Image();
+spaceDebrisImage.src = './assets/spaceDebris.webp';
+
+let debrisArray = [];
+let debrisSpeed = 3;
+
+// Function to create a debris object at a random position
+function createDebris() {
+  const debris = {
+    x: Math.random() * canvas.width, 
+    y: -100,  
+    width: 40 + Math.random() * 30,  
+    height: 40 + Math.random() * 30, 
+    speed: debrisSpeed + Math.random() * 2  
+  };
+  debrisArray.push(debris);
+}
+
+// Function to draw all debris on the canvas
+function drawDebris() {
+  debrisArray.forEach(debris => {
+    ctx.drawImage(spaceDebrisImage, debris.x, debris.y, debris.width, debris.height);
+  });
+}
+
+// Function to move the debris downwards
+function moveDebris() {
+  debrisArray.forEach(debris => {
+    debris.y += debris.speed;  // Move the debris down by its speed
+  });
+
+  // Remove debris that goes off-screen
+  debrisArray = debrisArray.filter(debris => debris.y < canvas.height);
+}
+
+// Randomly add debris at intervals
+function spawnDebrisRandomly() {
+  if (Math.random() < 0.03) { // 3% chance to spawn debris each frame
+    createDebris();
+  }
+}
+
 // Function to update the background based on player quads
 function updateBackground() {
   if (ship.bulletCount >= 4) {
