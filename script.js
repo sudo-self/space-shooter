@@ -133,10 +133,12 @@ function createAliens() {
     alienShip.ships.push({
       x: Math.random() * (canvas.width - alienShip.width),
       y: -Math.random() * canvas.height / 2,
-      hasFired: false 
+      hasFired: false,
+      image: alienShip.image.src
     });
   }
 }
+
 
 function drawAliens() {
   alienShip.ships.forEach(alien => {
@@ -192,11 +194,17 @@ function checkBulletAlienCollision() {
         bullet.y < alien.y + alienShip.height &&
         bullet.y + 15 > alien.y
       ) {
-        alienShip.ships.splice(i, 1);
-        ship.bullets.splice(j, 1);
-        alienShip.killCount++;
-        updateBulletColor();
-        updateKillCountDisplay();
+     
+        alien.image = killImage.src; 
+
+        
+        setTimeout(() => {
+          alienShip.ships.splice(i, 1);
+          ship.bullets.splice(j, 1);
+          alienShip.killCount++;
+          updateBulletColor();
+          updateKillCountDisplay();
+        }, 200); 
         break;
       }
     }
