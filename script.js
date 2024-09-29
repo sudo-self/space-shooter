@@ -275,16 +275,24 @@ function checkBulletAlienCollision() {
 
 function updateBulletProgression() {
   if (alienShip.killCount === 3) {
-    ship.bulletCount = 2;  
+    ship.bulletCount = 2;  // Double
     bulletColor = 'green';  
   } else if (alienShip.killCount === 6) {
-    bulletSpeed = 10; 
+    bulletSpeed = 10;  //  speed
   } else if (alienShip.killCount === 9) {
-    ship.lives++; 
-  } else if (alienShip.killCount >= 12) {
-
+    ship.lives++;  // extra life
+  } else if (alienShip.killCount === 12) {
+    ship.bulletCount = 4;  // Quad
+    bulletColor = 'yellow';  
+  } else if (alienShip.killCount >= 15) {
+    
+    ship.bulletCount = 1; 
+    bulletSpeed = 15; 
+    bulletColor = 'green'; 
+    bulletSize = { width: 5, height: 50 }; 
   }
 }
+
 
 function checkShipCollision() {
   for (let i = 0; i < alienShip.bullets.length; i++) {
