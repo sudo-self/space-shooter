@@ -229,7 +229,7 @@ function renderGameObjects() {
 
     // Draw ship bullets
     for (const bullet of shipBullets) {
-        ctx.fillStyle = 'yellow';
+        ctx.fillStyle = 'green';
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 
