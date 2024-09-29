@@ -14,7 +14,8 @@ const assets = {
   reset: './assets/reset.webp',
   kill: './assets/kill.webp',
   background: './assets/background.webp',
-  powerUp: './assets/Power.png' // Power-up image
+  powerUp: './assets/Power.gif',
+  spaceBackground: './assets/space-background.gif' 
 };
 
 const images = {};
@@ -94,11 +95,15 @@ function gameLoop() {
 
 // Draw the scrolling background
 function drawBackground() {
-  backgroundY += backgroundSpeed;
-  if (backgroundY >= canvas.height) backgroundY = 0;
+  if (gameState.alien.killCount >= 3 && !gameState.powerUpActive) {
+    ctx.drawImage(images.spaceBackground, 0, 0, canvas.width, canvas.height);
+  } else {
+    backgroundY += backgroundSpeed;
+    if (backgroundY >= canvas.height) backgroundY = 0;
 
-  ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
-  ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+    ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
+    ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+  }
 }
 
 // Handle player movement
@@ -242,71 +247,64 @@ function checkCollisions() {
         alienShips.splice(alienIndex, 1);
         shipBullets.splice(bulletIndex, 1);
         gameState.alien.killCount++;
+
+        // Update kill count and check for level up
+        if (gameState.alien.killCount % 5 === 0) {
+          gameState.level++;
+          if (gameState.level > gameState.maxLevel) {
+            gameState.level = gameState.maxLevel;
+          }
+        }
       }
     });
   });
+
+  debrisArray.forEach((debris, debrisIndex) => {
+    if (debris.x < gameState.ship.x + gameState.ship.width && debris.x + debris.width > gameState.ship.x &&
+      debris.y < gameState.ship.y + gameState.ship.height && debris.y + debris.height > gameState.ship.y) {
+      // Ship hit debris
+      gameState.ship.lives--;
+      debrisArray.splice(debrisIndex, 1);
+      if (gameState.ship.lives <= 0) {
+        gameState.gameOver = true;
+      }
+    }
+  });
 }
 
-// Aliens shoot at intervals
+// Function for alien shooting bullets
 function aliensShoot() {
-  gameState.alienFireCounter += 16; // Increment fire counter
-  if (gameState.alienFireCounter >= gameState.alienFireRate) {
+  gameState.alienFireCounter += 16; // Increase the counter based on game loop timing
+  if (gameState.alienFireCounter > gameState.alienFireRate) {
     alienShips.forEach(alien => {
-      for (let i = 0; i < gameState.alien.bulletsPerWave; i++) {
-        alienBullets.push({
-          x: alien.x + alien.width / 2 - 5,
-          y: alien.y + alien.height,
-          width: 5,
-          height: 15
-        });
+      if (Math.random() < 0.1) { // Adjust shooting frequency
+        alienBullets.push({ x: alien.x + alien.width / 2 - 2.5, y: alien.y + alien.height, width: 5, height: 15 });
       }
     });
-    gameState.alienFireCounter = 0; // Reset counter
+    gameState.alienFireCounter = 0; // Reset fire counter
   }
-}
-
-// Draw pause screen
-function drawPauseScreen() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'white';
-  ctx.font = '48px sans-serif';
-  ctx.fillText('Game Paused', canvas.width / 2 - 150, canvas.height / 2);
 }
 
 // Draw game over screen
 function drawGameOver() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = 'white';
   ctx.font = '48px sans-serif';
-  ctx.fillText('Game Over', canvas.width / 2 - 150, canvas.height / 2);
-  ctx.font = '24px sans-serif';
-  ctx.fillText('Press R to Restart', canvas.width / 2 - 100, canvas.height / 2 + 50);
+  ctx.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
 }
 
-// Reset game
-function resetGame() {
-  gameState.gameOver = false;
-  gameState.ship.lives = 4;
-  gameState.ship.x = canvas.width / 2 - 40;
-  gameState.ship.y = canvas.height - 90;
-  gameState.level = 1;
-  gameState.alien.wave = 1;
-  gameState.alien.killCount = 0;
-  gameState.powerUpActive = false;
-  createAlienWave();
+// Draw pause screen
+function drawPauseScreen() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'white';
+  ctx.font = '48px sans-serif';
+  ctx.fillText('Paused', canvas.width / 2 - 70, canvas.height / 2);
 }
 
-// Restart the game when pressing "R"
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'r' && gameState.gameOver) {
-    resetGame();
-  }
-});
-
+// Start the game
 init();
-
 
 
 
