@@ -33,12 +33,13 @@ let shipBullets = [];
 let powerUp = null;
 
 let gameState = {
-    debrisSpeed: 2, // Slower debris speed
+    debrisSpeed: 2,
     bulletSpeed: 7,
     paused: false,
     gameOver: false,
     powerUpActive: false,
-    ship: { x: canvas.width / 2 - 30, y: canvas.height - 60, width: 60, height: 60, speed: 7, lives: 4, bullets: 1 },
+    ship: { x: canvas.width / 2 - 30, y: canvas.height - 60, width: 60, height: 60, speed: 7, lives: 4 },
+    kills: 0,  // Initialize kills
     level: 1,
     maxLevel: 5,
 };
@@ -114,6 +115,7 @@ function gameLoop() {
     checkCollisions();
     spawnPowerUp();
     checkPowerUpCollision();
+    drawHUD(); // Draw HUD for lives and kills
 
     requestAnimationFrame(gameLoop);
 }
@@ -235,6 +237,7 @@ function checkCollisions() {
             if (isColliding(shipBullets[i], debrisArray[j])) {
                 debrisArray.splice(j, 1);
                 shipBullets.splice(i, 1);
+                gameState.kills++; // Increase kills count
                 break;
             }
         }
@@ -249,9 +252,15 @@ function checkCollisions() {
             break;
         }
     }
+
+    // Check collisions with power-up
+    if (powerUp && isColliding(powerUp, gameState.ship)) {
+        gameState.powerUpActive = true;
+        powerUp = null; // Collect power-up
+    }
 }
 
-// Check for collision between two rectangles
+// Collision detection function
 function isColliding(rect1, rect2) {
     return (
         rect1.x < rect2.x + rect2.width &&
@@ -261,39 +270,54 @@ function isColliding(rect1, rect2) {
     );
 }
 
-// Spawn power-ups randomly
+// Spawn power-ups
 function spawnPowerUp() {
-    if (!powerUp && Math.random() < 0.001) {
-        powerUp = { x: Math.random() * (canvas.width - 30), y: 0, width: 30, height: 30 };
+    if (Math.random() < 0.002 && !powerUp) {
+        powerUp = { x: Math.random() * (canvas.width - 50), y: -50, width: 50, height: 50 }; // Example power-up size
     }
 }
 
-// Check for collision between ship and power-up
+// Check collision with power-up
 function checkPowerUpCollision() {
-    if (powerUp && isColliding(gameState.ship, powerUp)) {
-        gameState.powerUpActive = true;
-        powerUp = null;
-
-        // Power-up lasts for 10 seconds
-        setTimeout(() => {
-            gameState.powerUpActive = false;
-        }, 10000);
-    }
+    // You can add logic here if you want to handle power-up effects
 }
 
-// Draw the game over screen
+// Draw heads-up display (HUD)
+function drawHUD() {
+    ctx.fillStyle = 'white';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Lives: ${gameState.ship.lives}`, 10, 30);
+    ctx.fillText(`Kills: ${gameState.kills}`, canvas.width - 100, 30); // Adjust position for kills
+}
+
+// Game Over screen
 function drawGameOver() {
-    ctx.font = '48px Arial';
-    ctx.fillStyle = 'red';
-    ctx.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '40px Arial';
+    ctx.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2 - 20);
+    ctx.font = '20px Arial';
+    ctx.fillText(`Final Kills: ${gameState.kills}`, canvas.width / 2 - 70, canvas.height / 2 + 20);
+    ctx.fillText('Press R to Restart', canvas.width / 2 - 90, canvas.height / 2 + 60);
 }
 
-// Draw the pause screen
+// Pause screen
 function drawPauseScreen() {
-    ctx.font = '36px Arial';
-    ctx.fillStyle = 'yellow';
-    ctx.fillText('Paused', canvas.width / 2 - 50, canvas.height / 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '40px Arial';
+    ctx.fillText('Paused', canvas.width / 2 - 60, canvas.height / 2 - 20);
 }
+
+// Restart game on key press
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R') {
+        location.reload(); // Reload the game
+    }
+});
+
 
 
 
