@@ -130,18 +130,32 @@ function gameLoop() {
 // Start the game
 init();
 
-// Background scrolling
 function drawBackground() {
-    if (gameState.alien.killCount >= 3 && !gameState.powerUpActive) {
-        ctx.drawImage(images.spaceBackground, 0, 0, canvas.width, canvas.height);
-    } else {
-        backgroundY += backgroundSpeed;
-        if (backgroundY >= canvas.height) backgroundY = 0;
+    // Scroll the background
+    backgroundY += backgroundSpeed;
+    if (backgroundY >= canvas.height) backgroundY = 0;
 
-        ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
-        ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+    ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
+    ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+
+    // Render debris as part of the background
+    for (let i = 0; i < debrisArray.length; i++) {
+        const debris = debrisArray[i];
+        debris.y += gameState.debrisSpeed; // Move debris down
+        if (debris.y > canvas.height) {
+            debrisArray.splice(i, 1); // Remove debris off-screen
+            i--; // Adjust index
+        } else {
+            ctx.drawImage(images.spaceDebris, debris.x, debris.y, debris.width, debris.height);
+        }
+    }
+    
+    // Spawn new debris randomly as part of the background
+    if (Math.random() < 0.02) {
+        debrisArray.push({ x: Math.random() * canvas.width, y: -30, width: 30, height: 30 });
     }
 }
+
 
 // Handle player movement
 function handleInput() {
@@ -252,14 +266,24 @@ function renderGameObjects() {
     }
 }
 
-// Create a wave of alien ships
 function createAlienWave() {
-    const count = Math.min(gameState.alien.bulletsPerWave + gameState.level - 1, 10);
-    for (let i = 0; i < count; i++) {
-        alienShips.push({ x: Math.random() * (canvas.width - 60), y: -50, width: 60, height: 40 });
+    const waveSize = Math.min(gameState.level + 2, 15); // Increase alien count with each wave, max 15
+    const alienSpeedIncrease = gameState.level * 0.5; // Gradually increase alien speed
+
+    for (let i = 0; i < waveSize; i++) {
+        alienShips.push({
+            x: Math.random() * (canvas.width - 60),
+            y: -50,
+            width: 60,
+            height: 40,
+            speed: gameState.alien.speed + alienSpeedIncrease // Aliens get faster with each wave
+        });
     }
-    gameState.alien.bulletsPerWave++;
+
+    gameState.level++; // Increase level after each wave
+    gameState.alien.bulletsPerWave = Math.min(gameState.level, 5); // Increase bullets per wave up to 5
 }
+
 
 // Handle collisions
 function checkCollisions() {
@@ -306,17 +330,23 @@ function isColliding(rect1, rect2) {
     );
 }
 
-// Aliens shoot at a set interval
 function aliensShoot() {
     gameState.alienFireCounter += 1000 / 60; // Assume 60 FPS
-    if (gameState.alienFireCounter >= gameState.alienFireRate) {
+    const adjustedFireRate = Math.max(1000, gameState.alienFireRate - gameState.level * 100); // Decrease fire rate as level increases
+
+    if (gameState.alienFireCounter >= adjustedFireRate) {
         const randomAlien = alienShips[Math.floor(Math.random() * alienShips.length)];
         if (randomAlien) {
-            alienBullets.push({ x: randomAlien.x + randomAlien.width / 2 - 2.5, y: randomAlien.y + randomAlien.height, width: 5, height: 15 });
+            alienBullets.push({ 
+                x: randomAlien.x + randomAlien.width / 2 - 2.5, 
+                y: randomAlien.y + randomAlien.height, 
+                width: 5, height: 15 
+            });
         }
         gameState.alienFireCounter = 0;
     }
 }
+
 
 // Spawn a power-up occasionally
 function spawnPowerUp() {
