@@ -65,44 +65,47 @@ const keys = {
 document.addEventListener('keydown', (e) => (keys[e.code] = true));
 document.addEventListener('keyup', (e) => (keys[e.code] = false));
 
-// Add touch event listeners for mobile
+// Add touch event listeners for mobile movement
 let touchStartX = 0;
 let touchStartY = 0;
+let shipInitialX = 0;
+let shipInitialY = 0;
 
+// Touch start event - capture the initial touch position and the ship's initial position
 canvas.addEventListener('touchstart', (e) => {
     const touch = e.touches[0];
     touchStartX = touch.clientX;
     touchStartY = touch.clientY;
+    shipInitialX = gameState.ship.x;
+    shipInitialY = gameState.ship.y;
 });
 
+// Touch move event - move the ship based on the touch movement
 canvas.addEventListener('touchmove', (e) => {
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStartX;
     const deltaY = touch.clientY - touchStartY;
 
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 20) keys.ArrowRight = true;
-        else if (deltaX < -20) keys.ArrowLeft = true;
-    } else {
-        if (deltaY > 20) keys.ArrowDown = true;
-        else if (deltaY < -20) keys.ArrowUp = true;
-    }
+    // Update the ship's position based on the movement delta
+    gameState.ship.x = shipInitialX + deltaX;
+    gameState.ship.y = shipInitialY + deltaY;
 
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
+    // Ensure the ship stays within the canvas bounds
+    if (gameState.ship.x < 0) gameState.ship.x = 0;
+    if (gameState.ship.x > canvas.width - gameState.ship.width) gameState.ship.x = canvas.width - gameState.ship.width;
+    if (gameState.ship.y < 0) gameState.ship.y = 0;
+    if (gameState.ship.y > canvas.height - gameState.ship.height) gameState.ship.y = canvas.height - gameState.ship.height;
 
     e.preventDefault(); // Prevent scrolling
 });
 
-canvas.addEventListener('touchend', () => {
-    keys.ArrowLeft = false;
-    keys.ArrowRight = false;
-    keys.ArrowUp = false;
-    keys.ArrowDown = false;
+// Tap to shoot on mobile
+canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        shootBullet(); // Fire a bullet when the screen is tapped
+    }
 });
 
-// Tap to shoot on mobile
-canvas.addEventListener('touchstart', () => shootBullet());
 
 // Game initialization
 function init() {
