@@ -238,17 +238,6 @@ function checkCollisions() {
         }
     }
 
-    // Check collision between debris and ship
-    for (let i = 0; i < debrisArray.length; i++) {
-        if (collision(debrisArray[i], gameState.ship)) {
-            gameState.ship.lives--;
-            debrisArray.splice(i, 1);
-            if (gameState.ship.lives <= 0) {
-                gameState.gameOver = true;
-            }
-            break;
-        }
-    }
 
     // Check collision between alien bullets and ship
     for (let i = 0; i < alienBullets.length; i++) {
@@ -343,6 +332,7 @@ document.addEventListener('keydown', (e) => {
 
 // Initialize game
 init();
+
 
 
 
