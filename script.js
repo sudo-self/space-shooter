@@ -13,7 +13,7 @@ const assets = {
   hit: './assets/hit.webp',
   reset: './assets/reset.webp',
   kill: './assets/kill.webp',
-  background: './assets/space-background.jpg'
+  background: './assets/space-background.webp'
 };
 
 const images = {};
@@ -38,10 +38,12 @@ let gameState = {
   alienBulletSpeed: 5,
   paused: false,
   gameOver: false,
+  alienFireRate: 2000, // Alien bullets interval
+  alienFireCounter: 0,
   ship: { x: canvas.width / 2 - 40, y: canvas.height - 90, width: 80, height: 90, speed: 7, lives: 4, bullets: 1 },
-  alien: { speed: 2, wave: 1, killCount: 0 },
+  alien: { speed: 2, wave: 1, killCount: 0, bulletsPerWave: 1 },
   level: 1,
-  maxLevel: 5
+  maxLevel: 5,
 };
 
 // Key controls
@@ -80,6 +82,7 @@ function gameLoop() {
   renderGameObjects();
 
   checkCollisions();
+  aliensShoot();
 
   requestAnimationFrame(gameLoop);
 }
@@ -131,7 +134,8 @@ function spawnDebris() {
 // Create alien ships for the wave
 function createAlienWave() {
   alienShips = [];
-  for (let i = 0; i < gameState.alien.wave * 5; i++) {
+  const waveCount = gameState.alien.wave * 5; // Increase the number of aliens with each wave
+  for (let i = 0; i < waveCount; i++) {
     alienShips.push({
       x: Math.random() * (canvas.width - 100),
       y: -Math.random() * canvas.height / 2,
@@ -189,6 +193,7 @@ function checkCollisions() {
           gameState.alien.wave++;
           gameState.level++;
           increaseWeaponLevel();
+          createAlienWave(); // Create new wave of aliens
         }
       }
     });
@@ -199,6 +204,25 @@ function checkCollisions() {
 function increaseWeaponLevel() {
   if (gameState.ship.bullets < gameState.maxLevel) {
     gameState.ship.bullets++;
+  }
+}
+
+// Aliens shoot bullets
+function aliensShoot() {
+  gameState.alienFireCounter += gameState.alien.wave; // Increase fire rate with wave
+
+  if (gameState.alienFireCounter > gameState.alienFireRate) {
+    alienShips.forEach(alien => {
+      for (let i = 0; i < gameState.alien.bulletsPerWave; i++) { // More bullets each wave
+        alienBullets.push({
+          x: alien.x + alien.width / 2,
+          y: alien.y + alien.height,
+          width: 5,
+          height: 10,
+        });
+      }
+    });
+    gameState.alienFireCounter = 0; // Reset counter after shooting
   }
 }
 
@@ -228,19 +252,18 @@ function drawGameOver() {
   ctx.fillStyle = 'red';
   ctx.font = '48px sans-serif';
   ctx.fillText('Game Over', canvas.width / 2 - 100, canvas.height / 2);
+  ctx.font = '24px sans-serif';
+  ctx.fillText('Press R to Restart', canvas.width / 2 - 100, canvas.height / 2 + 50);
 }
 
-// Draw pause screen
-function drawPauseScreen() {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'white';
-  ctx.font = '48px sans-serif';
-  ctx.fillText('Paused', canvas.width / 2 - 70, canvas.height / 2);
-}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'r' && gameState.gameOver) {
+    resetGame();
+  }
+});
 
-// Start the game
 init();
+
 
 
 
