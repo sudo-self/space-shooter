@@ -252,6 +252,8 @@ function checkBulletAlienCollision() {
     const alien = alienShip.ships[i];
     for (let j = ship.bullets.length - 1; j >= 0; j--) {
       const bullet = ship.bullets[j];
+      console.log('Checking collision:', { bullet, alien });
+
       if (
         bullet.x < alien.x + alienShip.width &&
         bullet.x + 5 > alien.x &&
@@ -259,12 +261,10 @@ function checkBulletAlienCollision() {
         bullet.y + 15 > alien.y
       ) {
         console.log('Collision detected!');
-
         ship.bullets.splice(j, 1);  // Remove the bullet
         alienShip.ships.splice(i, 1);  // Remove the alien
         alienShip.killCount++;  // Increment kill count
         console.log('Kill count:', alienShip.killCount);
-
         showKillEffect(alien.x, alien.y);  // Show the kill effect
         updateBulletProgression();  // Update bullet color and speed
         return;
@@ -272,6 +272,7 @@ function checkBulletAlienCollision() {
     }
   }
 }
+
 
 // Function to update bullet progression
 function updateBulletProgression() {
