@@ -280,6 +280,14 @@ function createAlienWave() {
     gameState.alien.wave++;
 }
 
+function checkAlienWaveComplete() {
+    if (alienShips.length === 0) {
+        gameState.alien.wave++;
+        gameState.alien.speed += 0.5;
+        createAlienWave(); 
+    }
+}
+
 // Spawn a power-up randomly
 function spawnPowerUp() {
     if (!powerUp && Math.random() < 0.001) { // Adjust frequency of power-up spawn
