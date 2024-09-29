@@ -158,7 +158,7 @@ function drawShip() {
 function drawBullets() {
   ctx.fillStyle = bulletColor;
   ship.bullets.forEach(bullet => {
-    ctx.fillRect(bullet.x, bullet.y, 5, 15);
+    ctx.fillRect(bullet.x, bullet.y, bulletSize?.width || 5, bulletSize?.height || 15);  
   });
 }
 
