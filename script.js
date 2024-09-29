@@ -237,12 +237,16 @@ function renderGameObjects() {
   ctx.fillText(`Level: ${gameState.level}`, canvas.width - 150, 30);
 }
 
-// Check for collisions (bullet hits alien or ship hits debris)
+// Check for collisions (only alien bullets and alien ship collisions cause damage)
 function checkCollisions() {
   shipBullets.forEach((bullet, bulletIndex) => {
     alienShips.forEach((alien, alienIndex) => {
-      if (bullet.x < alien.x + alien.width && bullet.x + bullet.width > alien.x &&
-        bullet.y < alien.y + alien.height && bullet.y + bullet.height > alien.y) {
+      if (
+        bullet.x < alien.x + alien.width &&
+        bullet.x + bullet.width > alien.x &&
+        bullet.y < alien.y + alien.height &&
+        bullet.y + bullet.height > alien.y
+      ) {
         // Bullet hit alien
         alienShips.splice(alienIndex, 1);
         shipBullets.splice(bulletIndex, 1);
@@ -258,6 +262,40 @@ function checkCollisions() {
       }
     });
   });
+
+  // Remove the debris collision detection
+  /*
+  debrisArray.forEach((debris, debrisIndex) => {
+    if (debris.x < gameState.ship.x + gameState.ship.width && debris.x + debris.width > gameState.ship.x &&
+      debris.y < gameState.ship.y + gameState.ship.height && debris.y + debris.height > gameState.ship.y) {
+      // Ship hit debris
+      gameState.ship.lives--;
+      debrisArray.splice(debrisIndex, 1);
+      if (gameState.ship.lives <= 0) {
+        gameState.gameOver = true;
+      }
+    }
+  });
+  */
+
+  // Check for collisions with alien bullets
+  alienBullets.forEach((bullet, bulletIndex) => {
+    if (
+      bullet.x < gameState.ship.x + gameState.ship.width &&
+      bullet.x + bullet.width > gameState.ship.x &&
+      bullet.y < gameState.ship.y + gameState.ship.height &&
+      bullet.y + bullet.height > gameState.ship.y
+    ) {
+      // Ship hit by alien bullet
+      gameState.ship.lives--;
+      alienBullets.splice(bulletIndex, 1);
+      if (gameState.ship.lives <= 0) {
+        gameState.gameOver = true;
+      }
+    }
+  });
+}
+
 
   debrisArray.forEach((debris, debrisIndex) => {
     if (debris.x < gameState.ship.x + gameState.ship.width && debris.x + debris.width > gameState.ship.x &&
