@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>shooter</title>
+    <title>Space Shooter</title>
     <meta charset="UTF-8" />
     <link rel="shortcut icon" href="favicon.ico" />
     <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="favicon.ico">
@@ -12,24 +12,28 @@
     <meta name="theme-color" content="#ffffff">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" sizes="192x192" href="favicon-192.png">
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="script.js"></script>
 </head>
 <body>
     <div id="header">
-      <a class="github-button" href="https://github.com/sudo-self/space-shooter" data-size="large" aria-label="star on GitHub">star</a>
-
+     
+        <iframe src="https://ghbtns.com/github-btn.html?user=sudo-self&repo=space-shooter&type=star&count=true&size=large" frameborder="0" scrolling="0" width="170" height="30" title="GitHub Star"></iframe>
     </div>
+    
     <canvas id="gameCanvas"></canvas>
+    
     <div id="pauseMenu">
         <h2>Paused</h2>
         <button onclick="togglePause()">Resume</button>
     </div>
+    
     <div id="killCount">Kills: 0</div>
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    
 </body>
 </html>
+
 
 
 
