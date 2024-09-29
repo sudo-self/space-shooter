@@ -263,34 +263,45 @@ function renderGameObjects() {
 
 // Check for collisions
 function checkCollisions() {
+    // Ship bullets vs alien ships
     for (let i = 0; i < shipBullets.length; i++) {
         for (let j = 0; j < alienShips.length; j++) {
             if (isColliding(shipBullets[i], alienShips[j])) {
-                shipBullets.splice(i, 1);
-                alienShips.splice(j, 1);
-                gameState.alien.killCount++;
+                shipBullets.splice(i, 1); // Remove the bullet
+                alienShips.splice(j, 1); // Remove the alien ship
+                gameState.alien.killCount++; // Increase the kill count
                 i--;
                 break;
             }
         }
     }
 
+    // Alien bullets vs player ship
     for (let i = 0; i < alienBullets.length; i++) {
         if (isColliding(alienBullets[i], gameState.ship)) {
-            alienBullets.splice(i, 1);
-            gameState.ship.lives--;
-            if (gameState.ship.lives === 0) gameState.gameOver = true;
+            alienBullets.splice(i, 1); // Remove alien bullet
+            gameState.ship.lives--; // Reduce player's life
+            if (gameState.ship.lives === 0) gameState.gameOver = true; // End game if no lives left
         }
     }
 
+    // Player ship vs alien ships
+    for (let j = 0; j < alienShips.length; j++) {
+        if (isColliding(alienShips[j], gameState.ship)) {
+            alienShips.splice(j, 1); // Remove the alien ship
+            gameState.ship.lives--; // Reduce player's life
+            if (gameState.ship.lives === 0) gameState.gameOver = true; // End game if no lives left
+        }
+    }
+
+    // Player ship vs debris (no damage, just removal of debris)
     for (let i = 0; i < debrisArray.length; i++) {
         if (isColliding(debrisArray[i], gameState.ship)) {
-            debrisArray.splice(i, 1);
-            gameState.ship.lives--;
-            if (gameState.ship.lives === 0) gameState.gameOver = true;
+            debrisArray.splice(i, 1); // Remove the debris without causing damage
         }
     }
 }
+
 
 // Collision detection
 function isColliding(rect1, rect2) {
