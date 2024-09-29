@@ -59,9 +59,49 @@ const keys = {
     Space: false,
 };
 
-// Add event listeners
+// Add keyboard event listeners
 document.addEventListener('keydown', (e) => (keys[e.code] = true));
 document.addEventListener('keyup', (e) => (keys[e.code] = false));
+
+// Add touch event listeners for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+});
+
+canvas.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 20) keys.ArrowRight = true;
+        else if (deltaX < -20) keys.ArrowLeft = true;
+    } else {
+        if (deltaY > 20) keys.ArrowDown = true;
+        else if (deltaY < -20) keys.ArrowUp = true;
+    }
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+
+    e.preventDefault(); // Prevent scrolling
+});
+
+canvas.addEventListener('touchend', () => {
+    // Reset movement keys on touchend
+    keys.ArrowLeft = false;
+    keys.ArrowRight = false;
+    keys.ArrowUp = false;
+    keys.ArrowDown = false;
+});
+
+// Tap to shoot on mobile
+canvas.addEventListener('touchstart', () => shootBullet());
 
 // Game initialization
 function init() {
@@ -87,8 +127,8 @@ function gameLoop() {
 
     checkCollisions();
     aliensShoot();
-    spawnPowerUp(); // Spawn power-up at intervals
-    checkPowerUpCollision(); // Check collision with power-up
+    spawnPowerUp();
+    checkPowerUpCollision();
 
     requestAnimationFrame(gameLoop);
 }
@@ -117,7 +157,7 @@ function handleInput() {
     if (keys.Space) shootBullet();
 }
 
-// Shoot bullets from the ship based on the weapon level (upgraded to dual lasers when power-up is active)
+// Shoot bullets from the ship
 function shootBullet() {
     const ship = gameState.ship;
 
@@ -126,14 +166,13 @@ function shootBullet() {
         shipBullets.push({ x: ship.x + 10, y: ship.y, width: 5, height: 15 }); // Left laser
         shipBullets.push({ x: ship.x + ship.width - 15, y: ship.y, width: 5, height: 15 }); // Right laser
     } else {
-        // Single bullet
         shipBullets.push({ x: ship.x + ship.width / 2 - 2.5, y: ship.y, width: 5, height: 15 });
     }
 }
 
 // Spawn debris randomly
 function spawnDebris() {
-    if (Math.random() < 0.02) { // Adjust frequency of debris spawn
+    if (Math.random() < 0.02) {
         debrisArray.push({ x: Math.random() * canvas.width, y: 0, width: 30, height: 30 });
     }
 }
@@ -178,9 +217,9 @@ function updateGameObjects() {
 
     // Update power-up
     if (powerUp) {
-        powerUp.y += 3; // Power-up falls
+        powerUp.y += 3;
         if (powerUp.y > canvas.height) {
-            powerUp = null; // Remove power-up if it falls off screen
+            powerUp = null;
         }
     }
 }
@@ -194,13 +233,13 @@ function renderGameObjects() {
 
     // Draw ship bullets
     for (const bullet of shipBullets) {
-        ctx.fillStyle = 'yellow'; // Bullet color
+        ctx.fillStyle = 'yellow';
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 
     // Draw alien bullets
     for (const bullet of alienBullets) {
-        ctx.fillStyle = 'red'; // Alien bullet color
+        ctx.fillStyle = 'red';
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 
@@ -228,118 +267,101 @@ function checkCollisions() {
     // Check collision between ship bullets and aliens
     for (let i = 0; i < shipBullets.length; i++) {
         for (let j = 0; j < alienShips.length; j++) {
-            if (collision(shipBullets[i], alienShips[j])) {
-                gameState.alien.killCount++;
-                alienShips.splice(j, 1);
+            if (isColliding(shipBullets[i], alienShips[j])) {
                 shipBullets.splice(i, 1);
+                alienShips.splice(j, 1);
+                gameState.alien.killCount++;
                 i--;
                 break;
             }
         }
     }
 
-
-    // Check collision between alien bullets and ship
+    // Check collision between ship and alien bullets
     for (let i = 0; i < alienBullets.length; i++) {
-        if (collision(alienBullets[i], gameState.ship)) {
-            gameState.ship.lives--;
+        if (isColliding(alienBullets[i], gameState.ship)) {
             alienBullets.splice(i, 1);
-            if (gameState.ship.lives <= 0) {
-                gameState.gameOver = true;
-            }
-            break;
+            gameState.ship.lives--;
+            if (gameState.ship.lives <= 0) gameState.gameOver = true;
+        }
+    }
+
+// Collision detection helper function
+function isColliding(rect1, rect2) {
+    return !(
+        rect1.x > rect2.x + rect2.width ||
+        rect1.x + rect1.width < rect2.x ||
+        rect1.y > rect2.y + rect2.height ||
+        rect1.y + rect1.height < rect2.y
+    );
+}
+
+// Alien shoots bullets
+function aliensShoot() {
+    if (gameState.alienFireCounter > gameState.alienFireRate) {
+        for (const alien of alienShips) {
+            alienBullets.push({ x: alien.x + alien.width / 2 - 2.5, y: alien.y + alien.height, width: 5, height: 15 });
+        }
+        gameState.alienFireCounter = 0;
+    } else {
+        gameState.alienFireCounter += 16; // Approximately 60 FPS
+    }
+}
+
+// Create a wave of alien ships
+function createAlienWave() {
+    const alienRows = Math.min(gameState.level, 3);
+    const alienCols = Math.min(gameState.level + 3, 8);
+
+    for (let i = 0; i < alienRows; i++) {
+        for (let j = 0; j < alienCols; j++) {
+            alienShips.push({
+                x: 100 + j * 90,
+                y: 50 + i * 90,
+                width: 70,
+                height: 70,
+            });
         }
     }
 }
 
-// Check for collision between two objects
-function collision(rect1, rect2) {
-    return (
-        rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.height + rect1.y > rect2.y
-    );
-}
-
-// Handle alien shooting
-function aliensShoot() {
-    if (alienShips.length > 0 && gameState.alienFireCounter >= gameState.alienFireRate) {
-        const randomAlien = alienShips[Math.floor(Math.random() * alienShips.length)];
-        alienBullets.push({ x: randomAlien.x + randomAlien.width / 2 - 2.5, y: randomAlien.y, width: 5, height: 15 });
-        gameState.alienFireCounter = 0;
-    }
-    gameState.alienFireCounter++;
-}
-
-// Create an alien wave
-function createAlienWave() {
-    for (let i = 0; i < gameState.alien.wave; i++) {
-        alienShips.push({ x: Math.random() * canvas.width, y: Math.random() * -500, width: 60, height: 60 });
-    }
-    gameState.alien.wave++;
-}
-
-function checkAlienWaveComplete() {
-    if (alienShips.length === 0) {
-        gameState.alien.wave++;
-        gameState.alien.speed += 0.5;
-        createAlienWave(); 
-    }
-}
-
-// Spawn a power-up randomly
-function spawnPowerUp() {
-    if (!powerUp && Math.random() < 0.001) { // Adjust frequency of power-up spawn
-        powerUp = { x: Math.random() * canvas.width, y: 0, width: 30, height: 30 };
-    }
-}
-
-// Check if ship collides with power-up
-function checkPowerUpCollision() {
-    if (powerUp && collision(powerUp, gameState.ship)) {
-        gameState.powerUpActive = true;
-        powerUp = null; // Remove power-up after collision
-        setTimeout(() => {
-            gameState.powerUpActive = false; // Power-up lasts for a limited time
-        }, 10000); // Power-up lasts for 10 seconds
-    }
-}
-
-// Draw game over screen
+// Handle game over state
 function drawGameOver() {
     ctx.fillStyle = 'red';
     ctx.font = '50px Arial';
-    ctx.fillText('Game Over', canvas.width / 2 - 150, canvas.height / 2);
-    ctx.fillText('Press R to Restart', canvas.width / 2 - 200, canvas.height / 2 + 60);
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 }
 
-// Draw pause screen
+// Handle pause state
 function drawPauseScreen() {
     ctx.fillStyle = 'white';
-    ctx.font = '30px Arial';
-    ctx.fillText('Paused', canvas.width / 2 - 50, canvas.height / 2);
+    ctx.font = '50px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
 }
 
-// Restart game
-function restartGame() {
-    gameState = { ...gameState, ship: { ...gameState.ship, lives: 4 }, gameOver: false, alien: { ...gameState.alien, killCount: 0, wave: 1 }, powerUpActive: false };
-    debrisArray = [];
-    shipBullets = [];
-    alienBullets = [];
-    alienShips = [];
-    createAlienWave();
-    gameLoop();
+// Spawn a power-up
+function spawnPowerUp() {
+    if (!powerUp && gameState.alien.killCount >= 3) {
+        powerUp = { x: Math.random() * (canvas.width - 30), y: 0, width: 30, height: 30 };
+    }
 }
 
-// Keydown listener for restart and pause
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'KeyR' && gameState.gameOver) restartGame();
-    if (e.code === 'KeyP') gameState.paused = !gameState.paused;
-});
+// Check if the ship collects the power-up
+function checkPowerUpCollision() {
+    if (powerUp && isColliding(powerUp, gameState.ship)) {
+        powerUp = null;
+        gameState.powerUpActive = true;
+
+        // Power-up lasts for 10 seconds
+        setTimeout(() => (gameState.powerUpActive = false), 10000);
+    }
+}
 
 // Initialize game
 init();
+
 
 
 
