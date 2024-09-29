@@ -13,7 +13,7 @@ const assets = {
     hit: './assets/hit.webp',
     reset: './assets/reset.webp',
     kill: './assets/kill.webp',
-    background: './assets/background.webp',
+    background: './assets/space-background.jpg',
     powerUp: './assets/Power.gif',
     spaceBackground: './assets/space-background.gif'
 };
