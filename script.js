@@ -9,15 +9,13 @@ canvas.height = window.innerHeight;
 const assets = {
     spaceDebris: './assets/spaceDebris.webp',
     ship: './assets/ship.webp',
+    alienShip: './assets/ship_alien.webp',
     hit: './assets/hit.webp',
     reset: './assets/reset.webp',
     kill: './assets/kill.webp',
     background: './assets/space-background.jpg',
     powerUp: './assets/Power.gif',
-    spaceBackground: './assets/space-background.gif',
-    alien: './assets/ship_alien.webp',
-    alienExplode: './assets/kill.webp',
-    alienBullet: './assets/alien_bullet.webp' // Add alien bullet image
+    spaceBackground: './assets/space-background.gif'
 };
 
 const images = {};
@@ -32,23 +30,24 @@ let backgroundSpeed = 1;
 
 // Game variables
 let debrisArray = [];
-let alienArray = [];
 let shipBullets = [];
-let alienBullets = []; // Array for alien bullets
+let alienBullets = [];
+let alienShips = [];
 let powerUp = null;
 
 let gameState = {
-    debrisSpeed: 2,
+    debrisSpeed: 3,
     bulletSpeed: 7,
-    alienSpeed: 2,  // Alien speed
-    alienShootInterval: 2000,  // How often aliens shoot (in ms)
+    alienBulletSpeed: 5,
     paused: false,
     gameOver: false,
+    alienFireRate: 2000,
+    alienFireCounter: 0,
     powerUpActive: false,
-    ship: { x: canvas.width / 2 - 30, y: canvas.height - 60, width: 60, height: 60, speed: 7, lives: 4 },
-    kills: 0,  // Initialize kills
+    ship: { x: canvas.width / 2 - 40, y: canvas.height - 90, width: 80, height: 90, speed: 7, lives: 4, bullets: 1 },
+    alien: { speed: 2, wave: 1, killCount: 0, bulletsPerWave: 1 },
     level: 1,
-    maxLevel: 10,  // Levels increase difficulty
+    maxLevel: 5,
 };
 
 // Key controls
@@ -103,50 +102,11 @@ canvas.addEventListener('touchmove', (e) => {
 
 // Game initialization
 function init() {
-    spawnAliens();
-    setInterval(alienShoot, gameState.alienShootInterval); // Make aliens shoot periodically
+    createAlienWave();
     gameLoop();
 }
 
-// Increase the number of aliens and speed with each level
-function spawnAlienWave() {
-    const alienCount = Math.min(gameState.level + 4, 15);  // Increase aliens each level, capped at 15
-    for (let i = 0; i < alienCount; i++) {
-        alienArray.push({ 
-            x: Math.random() * (canvas.width - 60), 
-            y: Math.random() * -200 - 60,  // Start above the screen
-            width: 60, 
-            height: 60 
-        });
-    }
-}
-
-// Increase game difficulty per level
-function increaseDifficulty() {
-    gameState.level++;
-    gameState.alienSpeed += 0.5;  // Increase alien speed with level
-    gameState.alienShootInterval = Math.max(500, gameState.alienShootInterval - 200);  // Reduce alien shooting interval but cap it at 500ms
-    gameState.debrisSpeed += 0.2;  // Increase debris speed with each level
-
-    // Notify the player about the next level
-    ctx.font = '40px Arial';
-    ctx.fillStyle = 'yellow';
-    ctx.fillText(`Level ${gameState.level}`, canvas.width / 2 - 50, canvas.height / 2);
-    
-    // Wait a moment before starting the next wave
-    setTimeout(() => {
-        spawnAlienWave();  // Spawn the next wave of aliens
-    }, 2000);  // 2-second delay before the next level
-}
-
-// Check if all aliens have been defeated, and if so, increase the level
-function checkForLevelCompletion() {
-    if (alienArray.length === 0 && !gameState.gameOver) {
-        increaseDifficulty();  // Move to the next level if no aliens are left
-    }
-}
-
-// Modify the game loop to check for level completion
+// Game loop
 function gameLoop() {
     if (gameState.gameOver) return drawGameOver();
 
@@ -160,23 +120,27 @@ function gameLoop() {
     updateGameObjects();
     renderGameObjects();
     checkCollisions();
+    aliensShoot();
     spawnPowerUp();
     checkPowerUpCollision();
-    drawHUD();  // Draw HUD for lives and kills
-
-    checkForLevelCompletion();  // Check if the level is complete
 
     requestAnimationFrame(gameLoop);
 }
 
+// Start the game
+init();
 
+// Background scrolling
 function drawBackground() {
-    // Scroll the background
-    backgroundY += backgroundSpeed;
-    if (backgroundY >= canvas.height) backgroundY = 0;
+    if (gameState.alien.killCount >= 3 && !gameState.powerUpActive) {
+        ctx.drawImage(images.spaceBackground, 0, 0, canvas.width, canvas.height);
+    } else {
+        backgroundY += backgroundSpeed;
+        if (backgroundY >= canvas.height) backgroundY = 0;
 
-    ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
-    ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+        ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
+        ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
+    }
 }
 
 // Handle player movement
@@ -201,44 +165,20 @@ function shootBullet() {
     }
 }
 
-// Make aliens shoot bullets
-function alienShoot() {
-    for (const alien of alienArray) {
-        alienBullets.push({ x: alien.x + alien.width / 2 - 5, y: alien.y + alien.height, width: 10, height: 20 });
-    }
-}
-
-// Spawn debris randomly (purely visual, no collisions)
+// Spawn debris randomly
 function spawnDebris() {
-    if (Math.random() < 0.01) {
-        debrisArray.push({ x: Math.random() * canvas.width, y: 0, width: 50, height: 50 }); // Increase size
-    }
-}
-
-// Spawn random number of aliens
-function spawnAliens() {
-    const alienCount = Math.floor(Math.random() * 5) + 1; // Random number of aliens (1 to 5)
-    for (let i = 0; i < alienCount; i++) {
-        alienArray.push({ x: Math.random() * canvas.width, y: -60, width: 60, height: 60 });
+    if (Math.random() < 0.02) {
+        debrisArray.push({ x: Math.random() * canvas.width, y: 0, width: 30, height: 30 });
     }
 }
 
 // Update game objects
 function updateGameObjects() {
-    // Update debris (visual only)
+    // Update debris
     for (let i = 0; i < debrisArray.length; i++) {
         debrisArray[i].y += gameState.debrisSpeed;
         if (debrisArray[i].y > canvas.height) {
             debrisArray.splice(i, 1);
-            i--;
-        }
-    }
-
-    // Update aliens
-    for (let i = 0; i < alienArray.length; i++) {
-        alienArray[i].y += gameState.alienSpeed;
-        if (alienArray[i].y > canvas.height) {
-            alienArray.splice(i, 1);
             i--;
         }
     }
@@ -254,9 +194,18 @@ function updateGameObjects() {
 
     // Update alien bullets
     for (let i = 0; i < alienBullets.length; i++) {
-        alienBullets[i].y += 5; // Adjust bullet speed
+        alienBullets[i].y += gameState.alienBulletSpeed;
         if (alienBullets[i].y > canvas.height) {
             alienBullets.splice(i, 1);
+            i--;
+        }
+    }
+
+    // Update alien ships
+    for (let i = 0; i < alienShips.length; i++) {
+        alienShips[i].y += gameState.alien.speed;
+        if (alienShips[i].y > canvas.height) {
+            alienShips.splice(i, 1);
             i--;
         }
     }
@@ -285,102 +234,142 @@ function renderGameObjects() {
 
     // Draw alien bullets
     for (const bullet of alienBullets) {
-        ctx.drawImage(images.alienBullet, bullet.x, bullet.y, bullet.width, bullet.height);
+        ctx.fillStyle = 'red';
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 
-    // Draw aliens
-    for (const alien of alienArray) {
-        ctx.drawImage(images.alien, alien.x, alien.y, alien.width, alien.height);
+    // Draw alien ships
+    for (const alien of alienShips) {
+        ctx.drawImage(images.alienShip, alien.x, alien.y, alien.width, alien.height);
     }
+
+    // Draw the player ship
+    ctx.drawImage(images.ship, gameState.ship.x, gameState.ship.y, gameState.ship.width, gameState.ship.height);
 
     // Draw power-up
     if (powerUp) {
         ctx.drawImage(images.powerUp, powerUp.x, powerUp.y, powerUp.width, powerUp.height);
     }
-
-    // Draw player ship
-    ctx.drawImage(images.ship, gameState.ship.x, gameState.ship.y, gameState.ship.width, gameState.ship.height);
 }
 
-// Check for collisions between bullets and aliens, and between the ship and alien bullets
+// Create a wave of alien ships
+function createAlienWave() {
+    const count = Math.min(gameState.alien.bulletsPerWave + gameState.level - 1, 10);
+    for (let i = 0; i < count; i++) {
+        alienShips.push({ x: Math.random() * (canvas.width - 60), y: -50, width: 60, height: 40 });
+    }
+    gameState.alien.bulletsPerWave++;
+}
+
+// Handle collisions
 function checkCollisions() {
-    // Check ship bullets hitting aliens
+    // Check collisions between bullets and alien ships
     for (let i = 0; i < shipBullets.length; i++) {
-        for (let j = 0; j < alienArray.length; j++) {
-            if (isColliding(shipBullets[i], alienArray[j])) {
-                gameState.kills++;  // Increment kill count
-                alienArray.splice(j, 1);
+        for (let j = 0; j < alienShips.length; j++) {
+            if (isColliding(shipBullets[i], alienShips[j])) {
+                alienShips.splice(j, 1);
                 shipBullets.splice(i, 1);
-                i--;
+                gameState.alien.killCount++;
                 break;
             }
         }
     }
 
-    // Check alien bullets hitting the ship
-    for (const bullet of alienBullets) {
-        if (isColliding(gameState.ship, bullet)) {
-            takeDamage();
-            alienBullets.splice(alienBullets.indexOf(bullet), 1);
+    // Check collisions between debris and the player ship
+    for (let i = 0; i < debrisArray.length; i++) {
+        if (isColliding(debrisArray[i], gameState.ship)) {
+            gameState.lives--;
+            debrisArray.splice(i, 1);
+            if (gameState.lives <= 0) gameState.gameOver = true;
+            break;
+        }
+    }
+
+    // Check collisions between alien bullets and the player ship
+    for (let i = 0; i < alienBullets.length; i++) {
+        if (isColliding(alienBullets[i], gameState.ship)) {
+            gameState.lives--;
+            alienBullets.splice(i, 1);
+            if (gameState.lives <= 0) gameState.gameOver = true;
+            break;
         }
     }
 }
 
-// Take damage (reduce lives)
-function takeDamage() {
-    gameState.ship.lives--;
-    if (gameState.ship.lives <= 0) {
-        gameState.gameOver = true;
-    }
-}
-
-// Collision detection helper function
-function isColliding(obj1, obj2) {
+// Check for collision between two rectangles
+function isColliding(rect1, rect2) {
     return (
-        obj1.x < obj2.x + obj2.width &&
-        obj1.x + obj1.width > obj2.x &&
-        obj1.y < obj2.y + obj2.height &&
-        obj1.y + obj1.height > obj2.y
+        rect1.x < rect2.x + rect2.width &&
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.y + rect1.height > rect2.y
     );
 }
 
-// Spawn a power-up at random
+// Aliens shoot at a set interval
+function aliensShoot() {
+    gameState.alienFireCounter += 1000 / 60; // Assume 60 FPS
+    if (gameState.alienFireCounter >= gameState.alienFireRate) {
+        const randomAlien = alienShips[Math.floor(Math.random() * alienShips.length)];
+        if (randomAlien) {
+            alienBullets.push({ x: randomAlien.x + randomAlien.width / 2 - 2.5, y: randomAlien.y + randomAlien.height, width: 5, height: 15 });
+        }
+        gameState.alienFireCounter = 0;
+    }
+}
+
+// Spawn a power-up occasionally
 function spawnPowerUp() {
-    if (!powerUp && Math.random() < 0.001) {
-        powerUp = { x: Math.random() * (canvas.width - 20), y: 0, width: 40, height: 40 }; // Larger power-up
+    if (!powerUp && Math.random() < 0.01) {
+        powerUp = { x: Math.random() * (canvas.width - 50), y: -50, width: 50, height: 50 };
     }
 }
 
-// Check if the ship collides with the power-up
+// Check for power-up collision
 function checkPowerUpCollision() {
-    if (powerUp && isColliding(gameState.ship, powerUp)) {
-        gameState.powerUpActive = true;
+    if (powerUp && isColliding(powerUp, gameState.ship)) {
         powerUp = null;
-        setTimeout(() => (gameState.powerUpActive = false), 10000); // Power-up lasts for 10 seconds
+        gameState.powerUpActive = true;
+        setTimeout(() => {
+            gameState.powerUpActive = false;
+        }, 5000); // Active for 5 seconds
     }
-}
-
-// Draw the HUD (lives and kills)
-function drawHUD() {
-    ctx.font = '20px Arial';
-    ctx.fillStyle = 'white';
-    ctx.fillText('Lives: ' + gameState.ship.lives, 20, 30);
-    ctx.fillText('Kills: ' + gameState.kills, 20, 60);
 }
 
 // Draw game over screen
 function drawGameOver() {
-    ctx.font = '50px Arial';
-    ctx.fillStyle = 'red';
-    ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.fillText('Game Over!', canvas.width / 2 - 120, canvas.height / 2);
+    ctx.font = '24px Arial';
+    ctx.fillText('Press F5 to restart', canvas.width / 2 - 100, canvas.height / 2 + 50);
 }
 
-// Draw the pause screen
+// Draw pause screen
 function drawPauseScreen() {
-    ctx.font = '50px Arial';
-    ctx.fillStyle = 'yellow';
-    ctx.fillText('PAUSED', canvas.width / 2 - 100, canvas.height / 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.fillText('Paused', canvas.width / 2 - 100, canvas.height / 2);
+    ctx.font = '24px Arial';
+    ctx.fillText('Press P to resume', canvas.width / 2 - 120, canvas.height / 2 + 50);
 }
+
+// Pause and resume functionality
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyP') {
+        gameState.paused = !gameState.paused;
+    }
+});
+
+
+
+
+
+
+
+
 
 
 
