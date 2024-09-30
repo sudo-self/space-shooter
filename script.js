@@ -306,17 +306,55 @@ function isColliding(rect1, rect2) {
     );
 }
 
-// Aliens shoot at a set interval
+function createAlienWave() {
+    const count = Math.min(gameState.alien.bulletsPerWave + gameState.level, 10);  // Increase difficulty by level
+    for (let i = 0; i < count; i++) {
+        alienShips.push({ x: Math.random() * (canvas.width - 60), y: -50, width: 60, height: 40 });
+    }
+    gameState.alien.bulletsPerWave++;
+    gameState.alien.speed += 0.5;  // Gradually increase alien speed
+}
+
 function aliensShoot() {
-    gameState.alienFireCounter += 1000 / 60; // Assume 60 FPS
+    gameState.alienFireCounter += 1000 / 60;  // Assume 60 FPS
     if (gameState.alienFireCounter >= gameState.alienFireRate) {
         const randomAlien = alienShips[Math.floor(Math.random() * alienShips.length)];
         if (randomAlien) {
-            alienBullets.push({ x: randomAlien.x + randomAlien.width / 2 - 2.5, y: randomAlien.y + randomAlien.height, width: 5, height: 15 });
+            const bulletSpeed = gameState.level >= 3 ? gameState.alienBulletSpeed + 2 : gameState.alienBulletSpeed;
+            alienBullets.push({ 
+                x: randomAlien.x + randomAlien.width / 2 - 2.5, 
+                y: randomAlien.y + randomAlien.height, 
+                width: 5, 
+                height: 15,
+                speed: bulletSpeed
+            });
         }
         gameState.alienFireCounter = 0;
     }
 }
+
+
+function shootBullet() {
+    const ship = gameState.ship;
+    if (gameState.level >= 3) {  // Introduce quad bullets at level 3
+        shipBullets.push({ x: ship.x + 10, y: ship.y, width: 5, height: 15 });
+        shipBullets.push({ x: ship.x + ship.width / 2 - 2.5, y: ship.y, width: 5, height: 15 });
+        shipBullets.push({ x: ship.x + ship.width - 15, y: ship.y, width: 5, height: 15 });
+    } else if (gameState.powerUpActive) {
+        // Dual bullets during power-up
+        shipBullets.push({ x: ship.x + 10, y: ship.y, width: 5, height: 15 });
+        shipBullets.push({ x: ship.x + ship.width - 15, y: ship.y, width: 5, height: 15 });
+    } else {
+        // Single bullet
+        shipBullets.push({ x: ship.x + ship.width / 2 - 2.5, y: ship.y, width: 5, height: 15 });
+    }
+}
+
+
+
+
+
+
 
 // Spawn a power-up occasionally
 function spawnPowerUp() {
