@@ -24,15 +24,37 @@ const images = {
     debris: new Image(),
 };
 
-images.ship.src = './assets/ship.webp'; 
-images.alien.src = './assets/alien.webp'; 
-images.bullet.src = './assets/hit.webp';
-images.alienBullet.src = './assets/kill.webp';
-images.powerUp.src = './assets/Power.png'; 
-images.spaceBackground.src = './assets/space-background.gif'; 
-images.normalBackground.src = './assets/normal-background.jpg'; 
-images.debris.src = './assets/spaceDebris.webp'; 
+// Load images with callbacks to ensure all are ready before starting
+const imagePaths = {
+    ship: './assets/ship.webp',
+    alien: './assets/alien.webp',
+    bullet: './assets/hit.webp',
+    alienBullet: './assets/kill.webp',
+    powerUp: './assets/Power.png',
+    spaceBackground: './assets/space-background.gif',
+    normalBackground: './assets/normal-background.jpg',
+    debris: './assets/spaceDebris.webp',
+};
 
+// Track loaded images
+let loadedImages = 0;
+const totalImages = Object.keys(imagePaths).length;
+
+function loadImages() {
+    for (let key in imagePaths) {
+        images[key].src = imagePaths[key];
+        images[key].onload = () => {
+            loadedImages++;
+            if (loadedImages === totalImages) {
+                // Start game once all images are loaded
+                requestAnimationFrame(gameLoop);
+            }
+        };
+        images[key].onerror = () => {
+            console.error(`Error loading image: ${imagePaths[key]}`);
+        };
+    }
+}
 
 // Input
 let leftPressed = false;
@@ -82,7 +104,7 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('keyup', (e) => {
     if (e.code === 'ArrowLeft') leftPressed = false;
-    if (e.code === 'ArrowRight') rightPressed = false;
+    if (e.code === 'ArrowRight') leftPressed = false;
     if (e.code === 'Space') spacePressed = false;
 });
 
@@ -196,7 +218,7 @@ function drawGame() {
     // Draw player ship
     ctx.drawImage(images.ship, gameState.ship.x, gameState.ship.y, gameState.ship.width, gameState.ship.height);
 
-    // Draw HUD once
+    // Draw HUD
     drawHUD();
 }
 
@@ -248,18 +270,18 @@ function drawHUD() {
 function drawGameOver() {
     ctx.font = '50px Arial';
     ctx.fillStyle = 'red';
-    ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
+    ctx.fillText('Game Over', canvas.width / 2 - 150, canvas.height / 2);
 }
 
 // Draw pause screen
 function drawPauseScreen() {
     ctx.font = '50px Arial';
     ctx.fillStyle = 'yellow';
-    ctx.fillText('PAUSED', canvas.width / 2 - 100, canvas.height / 2);
+    ctx.fillText('Paused', canvas.width / 2 - 100, canvas.height / 2);
 }
 
-// Start game
-requestAnimationFrame(gameLoop);
+// Start loading assets
+loadImages();
 
 
 
