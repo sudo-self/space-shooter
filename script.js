@@ -24,14 +24,15 @@ const images = {
     debris: new Image(),
 };
 
-images.ship.src = './assets/ship.webp';
-images.alien.src = './assets/alien_ship.webp';
-images.bullet.src = './assets/bullet.png';
-images.alienBullet.src = './assets/alien-bullet.png';
-images.powerUp.src = './assets/power.png';
-images.spaceBackground.src = './assets/space-background.gif';
-images.normalBackground.src = './assets/normal-background.jpg';
-images.debris.src = './assets/spaceDebris.webp'; // Adjusted for larger debris
+images.ship.src = './assets/ship.webp'; // Already correct
+images.alien.src = './assets/alien.webp'; // Already correct
+images.bullet.src = './assets/hit.webp'; // Match with your file 'hit.webp'
+images.alienBullet.src = './assets/kill.webp'; // Match with your file 'kill.webp'
+images.powerUp.src = './assets/Power.png'; // Match with your file 'Power.png'
+images.spaceBackground.src = './assets/space-background.gif'; // Already correct
+images.normalBackground.src = './assets/normal-background.jpg'; // Already correct
+images.debris.src = './assets/spaceDebris.webp'; // Already correct
+
 
 // Input
 let leftPressed = false;
