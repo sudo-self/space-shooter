@@ -28,7 +28,7 @@ images.ship.src = './assets/ship.webp';
 images.alien.src = './assets/alien.webp';
 images.bullet.src = './assets/bullet.png';
 images.alienBullet.src = './assets/alien-bullet.png';
-images.powerUp.src = './assets/power-up.png';
+images.powerUp.src = './assets/power.png';
 images.spaceBackground.src = './assets/space-background.gif';
 images.normalBackground.src = './assets/normal-background.jpg';
 images.debris.src = './assets/spaceDebris.webp'; // Adjusted for larger debris
@@ -259,6 +259,7 @@ function drawPauseScreen() {
 
 // Start game
 requestAnimationFrame(gameLoop);
+
 
 
 
