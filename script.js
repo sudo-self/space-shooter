@@ -25,7 +25,7 @@ const images = {
 };
 
 images.ship.src = './assets/ship.webp';
-images.alien.src = './assets/alien.webp';
+images.alien.src = './assets/alien_ship.webp';
 images.bullet.src = './assets/bullet.png';
 images.alienBullet.src = './assets/alien-bullet.png';
 images.powerUp.src = './assets/power.png';
