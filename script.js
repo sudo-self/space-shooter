@@ -1,208 +1,253 @@
-// Canvas setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Game state
-let gameState = {
-    ship: { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 50, lives: 3 },
-    kills: 0,
-    gameOver: false,
-    paused: false,
-    powerUpActive: false,
-    currentBackground: 'normal', // Track current background ('normal' or 'space')
-};
+// Resize canvas to fill the screen
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Assets
-const images = {
-    ship: new Image(),
-    alien: new Image(),
-    bullet: new Image(),
-    alienBullet: new Image(),
-    powerUp: new Image(),
-    spaceBackground: new Image(),
-    normalBackground: new Image(),
-    debris: new Image(),
-};
-
-// Load images with callbacks to ensure all are ready before starting
-const imagePaths = {
+// Load assets
+const assets = {
+    spaceDebris: './assets/spaceDebris.webp',
     ship: './assets/ship.webp',
-    alien: './assets/alien.webp',
-    bullet: './assets/hit.webp',
-    alienBullet: './assets/kill.webp',
-    powerUp: './assets/Power.png',
+    hit: './assets/hit.webp',
+    reset: './assets/reset.webp',
+    kill: './assets/kill.webp',
+    background: './assets/space-background.jpg',
+    powerUp: './assets/Power.gif',
     spaceBackground: './assets/space-background.gif',
-    normalBackground: './assets/normal-background.jpg',
-    debris: './assets/spaceDebris.webp',
+    alien: './assets/ship_alien.webp',
+    alienExplode: './assets/kill.webp',
+    alienBullet: './assets/alien_bullet.webp' // Add alien bullet image
 };
 
-// Track loaded images
-let loadedImages = 0;
-const totalImages = Object.keys(imagePaths).length;
-
-function loadImages() {
-    for (let key in imagePaths) {
-        images[key].src = imagePaths[key];
-        images[key].onload = () => {
-            loadedImages++;
-            if (loadedImages === totalImages) {
-                // Start game once all images are loaded
-                requestAnimationFrame(gameLoop);
-            }
-        };
-        images[key].onerror = () => {
-            console.error(`Error loading image: ${imagePaths[key]}`);
-        };
-    }
+const images = {};
+for (let key in assets) {
+    images[key] = new Image();
+    images[key].src = assets[key];
 }
 
-// Input
-let leftPressed = false;
-let rightPressed = false;
-let spacePressed = false;
+// Background variables
+let backgroundY = 0;
+let backgroundSpeed = 1;
 
-// Game elements
-let shipBullets = [];
+// Game variables
+let debrisArray = [];
 let alienArray = [];
-let alienBullets = [];
+let shipBullets = [];
+let alienBullets = []; // Array for alien bullets
 let powerUp = null;
-let powerUpTimer = null;
-let quadBullet = false; // For quad pink bullets
-let debrisArray = []; // To manage space debris elements
 
-// Initialize debris for visual effect
-for (let i = 0; i < 10; i++) {
-    debrisArray.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        width: 50,
-        height: 50,
-    });
+let gameState = {
+    debrisSpeed: 2,
+    bulletSpeed: 7,
+    alienSpeed: 2,  // Alien speed
+    alienShootInterval: 2000,  // How often aliens shoot (in ms)
+    paused: false,
+    gameOver: false,
+    powerUpActive: false,
+    ship: { x: canvas.width / 2 - 30, y: canvas.height - 60, width: 60, height: 60, speed: 7, lives: 4 },
+    kills: 0,  // Initialize kills
+    level: 1,
+    maxLevel: 10,  // Levels increase difficulty
+};
+
+// Key controls
+const keys = {
+    ArrowLeft: false,
+    ArrowRight: false,
+    ArrowUp: false,
+    ArrowDown: false,
+    Space: false,
+};
+
+// Add keyboard event listeners
+document.addEventListener('keydown', (e) => (keys[e.code] = true));
+document.addEventListener('keyup', (e) => (keys[e.code] = false));
+
+// Add touch event listeners for mobile movement
+let touchStartX = 0;
+let touchStartY = 0;
+let shipInitialX = 0;
+let shipInitialY = 0;
+
+// Touch start event - capture the initial touch position and the ship's initial position
+canvas.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    shipInitialX = gameState.ship.x;
+    shipInitialY = gameState.ship.y;
+
+    // Tap to shoot on mobile
+    shootBullet(); // Fire a bullet when the screen is tapped
+});
+
+// Touch move event - move the ship based on the touch movement
+canvas.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+
+    // Update the ship's position based on the movement delta
+    gameState.ship.x = shipInitialX + deltaX;
+    gameState.ship.y = shipInitialY + deltaY;
+
+    // Ensure the ship stays within the canvas bounds
+    if (gameState.ship.x < 0) gameState.ship.x = 0;
+    if (gameState.ship.x > canvas.width - gameState.ship.width) gameState.ship.x = canvas.width - gameState.ship.width;
+    if (gameState.ship.y < 0) gameState.ship.y = 0;
+    if (gameState.ship.y > canvas.height - gameState.ship.height) gameState.ship.y = canvas.height - gameState.ship.height;
+
+    e.preventDefault(); // Prevent scrolling
+});
+
+// Game initialization
+function init() {
+    spawnAliens();
+    setInterval(alienShoot, gameState.alienShootInterval); // Make aliens shoot periodically
+    gameLoop();
 }
 
 // Game loop
 function gameLoop() {
-    if (!gameState.paused) {
-        updateGame();
-        drawGame();
-    }
+    if (gameState.gameOver) return drawGameOver();
 
-    if (!gameState.gameOver) {
-        requestAnimationFrame(gameLoop);
-    } else {
-        drawGameOver();
-    }
-}
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// Handle key events
-document.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowLeft') leftPressed = true;
-    if (e.code === 'ArrowRight') rightPressed = true;
-    if (e.code === 'Space') spacePressed = true;
-    if (e.code === 'KeyP') togglePause(); // Pause with 'P' key
-});
+    if (gameState.paused) return drawPauseScreen();
 
-document.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowLeft') leftPressed = false;
-    if (e.code === 'ArrowRight') leftPressed = false;
-    if (e.code === 'Space') spacePressed = false;
-});
-
-// Toggle pause function
-function togglePause() {
-    gameState.paused = !gameState.paused;
-    if (gameState.paused) {
-        drawPauseScreen();
-    } else {
-        requestAnimationFrame(gameLoop);
-    }
-}
-
-// Update game logic
-function updateGame() {
-    moveShip();
-    moveBullets();
-    moveAliens();
-    spawnPowerUp();
+    drawBackground();
+    handleInput();
+    spawnDebris();
+    updateGameObjects();
+    renderGameObjects();
     checkCollisions();
+    spawnPowerUp();
     checkPowerUpCollision();
-    moveDebris();
+    drawHUD(); // Draw HUD for lives and kills
+
+    requestAnimationFrame(gameLoop);
 }
 
-// Move the ship
-function moveShip() {
-    if (leftPressed && gameState.ship.x > 0) {
-        gameState.ship.x -= 5;
-    }
-    if (rightPressed && gameState.ship.x + gameState.ship.width < canvas.width) {
-        gameState.ship.x += 5;
-    }
-    if (spacePressed) {
-        shoot();
-    }
+// Start the game
+init();
+
+function drawBackground() {
+    // Scroll the background
+    backgroundY += backgroundSpeed;
+    if (backgroundY >= canvas.height) backgroundY = 0;
+
+    ctx.drawImage(images.background, 0, backgroundY, canvas.width, canvas.height);
+    ctx.drawImage(images.background, 0, backgroundY - canvas.height, canvas.width, canvas.height);
 }
 
-// Shoot bullets
-function shoot() {
-    if (quadBullet) {
-        // Shoot 4 pink bullets
-        shipBullets.push({ x: gameState.ship.x, y: gameState.ship.y, width: 10, height: 20, color: 'pink' });
-        shipBullets.push({ x: gameState.ship.x + 10, y: gameState.ship.y, width: 10, height: 20, color: 'pink' });
-        shipBullets.push({ x: gameState.ship.x + 20, y: gameState.ship.y, width: 10, height: 20, color: 'pink' });
-        shipBullets.push({ x: gameState.ship.x + 30, y: gameState.ship.y, width: 10, height: 20, color: 'pink' });
+// Handle player movement
+function handleInput() {
+    const ship = gameState.ship;
+    if (keys.ArrowLeft && ship.x > 0) ship.x -= ship.speed;
+    if (keys.ArrowRight && ship.x < canvas.width - ship.width) ship.x += ship.speed;
+    if (keys.ArrowUp && ship.y > 0) ship.y -= ship.speed;
+    if (keys.ArrowDown && ship.y < canvas.height - ship.height) ship.y += ship.speed;
+
+    if (keys.Space) shootBullet();
+}
+
+// Shoot bullets from the ship
+function shootBullet() {
+    const ship = gameState.ship;
+    if (gameState.powerUpActive) {
+        shipBullets.push({ x: ship.x + 10, y: ship.y, width: 5, height: 15 }); // Left laser
+        shipBullets.push({ x: ship.x + ship.width - 15, y: ship.y, width: 5, height: 15 }); // Right laser
     } else {
-        // Shoot normal bullet
-        shipBullets.push({ x: gameState.ship.x + gameState.ship.width / 2 - 2, y: gameState.ship.y, width: 4, height: 10, color: 'white' });
+        shipBullets.push({ x: ship.x + ship.width / 2 - 2.5, y: ship.y, width: 5, height: 15 });
     }
 }
 
-// Move bullets
-function moveBullets() {
-    for (const bullet of shipBullets) {
-        bullet.y -= 5;
-    }
-    shipBullets = shipBullets.filter((bullet) => bullet.y > 0);
-}
-
-// Move debris (background only)
-function moveDebris() {
-    for (const debris of debrisArray) {
-        debris.y += 1; // Move the debris slowly down
-        if (debris.y > canvas.height) debris.y = -50; // Reset position when it goes off screen
-    }
-}
-
-// Move aliens
-function moveAliens() {
+// Make aliens shoot bullets
+function alienShoot() {
     for (const alien of alienArray) {
-        alien.y += 1;
-        if (Math.random() < 0.005 && !gameState.paused) {
-            alienBullets.push({ x: alien.x + alien.width / 2 - 2, y: alien.y + alien.height, width: 4, height: 10 });
+        alienBullets.push({ x: alien.x + alien.width / 2 - 5, y: alien.y + alien.height, width: 10, height: 20 });
+    }
+}
+
+// Spawn debris randomly (purely visual, no collisions)
+function spawnDebris() {
+    if (Math.random() < 0.01) {
+        debrisArray.push({ x: Math.random() * canvas.width, y: 0, width: 50, height: 50 }); // Increase size
+    }
+}
+
+// Spawn random number of aliens
+function spawnAliens() {
+    const alienCount = Math.floor(Math.random() * 5) + 1; // Random number of aliens (1 to 5)
+    for (let i = 0; i < alienCount; i++) {
+        alienArray.push({ x: Math.random() * canvas.width, y: -60, width: 60, height: 60 });
+    }
+}
+
+// Update game objects
+function updateGameObjects() {
+    // Update debris (visual only)
+    for (let i = 0; i < debrisArray.length; i++) {
+        debrisArray[i].y += gameState.debrisSpeed;
+        if (debrisArray[i].y > canvas.height) {
+            debrisArray.splice(i, 1);
+            i--;
         }
     }
-    alienArray = alienArray.filter((alien) => alien.y < canvas.height);
+
+    // Update aliens
+    for (let i = 0; i < alienArray.length; i++) {
+        alienArray[i].y += gameState.alienSpeed;
+        if (alienArray[i].y > canvas.height) {
+            alienArray.splice(i, 1);
+            i--;
+        }
+    }
+
+    // Update ship bullets
+    for (let i = 0; i < shipBullets.length; i++) {
+        shipBullets[i].y -= gameState.bulletSpeed;
+        if (shipBullets[i].y < 0) {
+            shipBullets.splice(i, 1);
+            i--;
+        }
+    }
+
+    // Update alien bullets
+    for (let i = 0; i < alienBullets.length; i++) {
+        alienBullets[i].y += 5; // Adjust bullet speed
+        if (alienBullets[i].y > canvas.height) {
+            alienBullets.splice(i, 1);
+            i--;
+        }
+    }
+
+    // Update power-up
+    if (powerUp) {
+        powerUp.y += 3;
+        if (powerUp.y > canvas.height) {
+            powerUp = null;
+        }
+    }
 }
 
-// Draw everything
-function drawGame() {
-    // Draw background
-    ctx.drawImage(gameState.currentBackground === 'space' ? images.spaceBackground : images.normalBackground, 0, 0, canvas.width, canvas.height);
-
-    // Draw space debris (visual only)
+// Render game objects
+function renderGameObjects() {
+    // Draw debris
     for (const debris of debrisArray) {
-        ctx.drawImage(images.debris, debris.x, debris.y, debris.width, debris.height);
+        ctx.drawImage(images.spaceDebris, debris.x, debris.y, debris.width, debris.height);
     }
 
     // Draw ship bullets
     for (const bullet of shipBullets) {
-        ctx.fillStyle = bullet.color;
+        ctx.fillStyle = 'green';
         ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
     }
 
     // Draw alien bullets
     for (const bullet of alienBullets) {
-        ctx.fillStyle = 'red';
-        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        ctx.drawImage(images.alienBullet, bullet.x, bullet.y, bullet.width, bullet.height);
     }
 
     // Draw aliens
@@ -217,38 +262,41 @@ function drawGame() {
 
     // Draw player ship
     ctx.drawImage(images.ship, gameState.ship.x, gameState.ship.y, gameState.ship.width, gameState.ship.height);
-
-    // Draw HUD
-    drawHUD();
 }
 
-// Check for collisions
+// Check for collisions between bullets and aliens, and between the ship and alien bullets
 function checkCollisions() {
-    // Collision detection logic
-}
+    // Check ship bullets hitting aliens
+    for (let i = 0; i < shipBullets.length; i++) {
+        for (let j = 0; j < alienArray.length; j++) {
+            if (isColliding(shipBullets[i], alienArray[j])) {
+                gameState.kills++;  // Increment kill count
+                alienArray.splice(j, 1);
+                shipBullets.splice(i, 1);
+                i--;
+                break;
+            }
+        }
+    }
 
-// Power-up activation
-function activatePowerUp() {
-    gameState.powerUpActive = true;
-    gameState.currentBackground = 'space'; // Switch background to space
-    quadBullet = true;
-
-    clearTimeout(powerUpTimer);
-    powerUpTimer = setTimeout(() => {
-        gameState.powerUpActive = false;
-        gameState.currentBackground = 'normal'; // Revert to normal background
-        quadBullet = false;
-    }, 20000); // Power-up lasts for 20 seconds
-}
-
-// Spawn a power-up
-function spawnPowerUp() {
-    if (!powerUp && Math.random() < 0.001) {
-        powerUp = { x: Math.random() * (canvas.width - 40), y: 0, width: 40, height: 40 };
+    // Check alien bullets hitting the ship
+    for (const bullet of alienBullets) {
+        if (isColliding(gameState.ship, bullet)) {
+            takeDamage();
+            alienBullets.splice(alienBullets.indexOf(bullet), 1);
+        }
     }
 }
 
-// Collision detection helper
+// Take damage (reduce lives)
+function takeDamage() {
+    gameState.ship.lives--;
+    if (gameState.ship.lives <= 0) {
+        gameState.gameOver = true;
+    }
+}
+
+// Collision detection helper function
 function isColliding(obj1, obj2) {
     return (
         obj1.x < obj2.x + obj2.width &&
@@ -258,7 +306,23 @@ function isColliding(obj1, obj2) {
     );
 }
 
-// Draw HUD
+// Spawn a power-up at random
+function spawnPowerUp() {
+    if (!powerUp && Math.random() < 0.001) {
+        powerUp = { x: Math.random() * (canvas.width - 20), y: 0, width: 40, height: 40 }; // Larger power-up
+    }
+}
+
+// Check if the ship collides with the power-up
+function checkPowerUpCollision() {
+    if (powerUp && isColliding(gameState.ship, powerUp)) {
+        gameState.powerUpActive = true;
+        powerUp = null;
+        setTimeout(() => (gameState.powerUpActive = false), 10000); // Power-up lasts for 10 seconds
+    }
+}
+
+// Draw the HUD (lives and kills)
 function drawHUD() {
     ctx.font = '20px Arial';
     ctx.fillStyle = 'white';
@@ -270,18 +334,25 @@ function drawHUD() {
 function drawGameOver() {
     ctx.font = '50px Arial';
     ctx.fillStyle = 'red';
-    ctx.fillText('Game Over', canvas.width / 2 - 150, canvas.height / 2);
+    ctx.fillText('GAME OVER', canvas.width / 2 - 150, canvas.height / 2);
 }
 
-// Draw pause screen
+// Draw the pause screen
 function drawPauseScreen() {
     ctx.font = '50px Arial';
     ctx.fillStyle = 'yellow';
-    ctx.fillText('Paused', canvas.width / 2 - 100, canvas.height / 2);
+    ctx.fillText('PAUSED', canvas.width / 2 - 100, canvas.height / 2);
 }
 
-// Start loading assets
-loadImages();
+
+
+
+
+
+
+
+
+
 
 
 
