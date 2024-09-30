@@ -108,7 +108,45 @@ function init() {
     gameLoop();
 }
 
-// Game loop
+// Increase the number of aliens and speed with each level
+function spawnAlienWave() {
+    const alienCount = Math.min(gameState.level + 4, 15);  // Increase aliens each level, capped at 15
+    for (let i = 0; i < alienCount; i++) {
+        alienArray.push({ 
+            x: Math.random() * (canvas.width - 60), 
+            y: Math.random() * -200 - 60,  // Start above the screen
+            width: 60, 
+            height: 60 
+        });
+    }
+}
+
+// Increase game difficulty per level
+function increaseDifficulty() {
+    gameState.level++;
+    gameState.alienSpeed += 0.5;  // Increase alien speed with level
+    gameState.alienShootInterval = Math.max(500, gameState.alienShootInterval - 200);  // Reduce alien shooting interval but cap it at 500ms
+    gameState.debrisSpeed += 0.2;  // Increase debris speed with each level
+
+    // Notify the player about the next level
+    ctx.font = '40px Arial';
+    ctx.fillStyle = 'yellow';
+    ctx.fillText(`Level ${gameState.level}`, canvas.width / 2 - 50, canvas.height / 2);
+    
+    // Wait a moment before starting the next wave
+    setTimeout(() => {
+        spawnAlienWave();  // Spawn the next wave of aliens
+    }, 2000);  // 2-second delay before the next level
+}
+
+// Check if all aliens have been defeated, and if so, increase the level
+function checkForLevelCompletion() {
+    if (alienArray.length === 0 && !gameState.gameOver) {
+        increaseDifficulty();  // Move to the next level if no aliens are left
+    }
+}
+
+// Modify the game loop to check for level completion
 function gameLoop() {
     if (gameState.gameOver) return drawGameOver();
 
@@ -124,13 +162,13 @@ function gameLoop() {
     checkCollisions();
     spawnPowerUp();
     checkPowerUpCollision();
-    drawHUD(); // Draw HUD for lives and kills
+    drawHUD();  // Draw HUD for lives and kills
+
+    checkForLevelCompletion();  // Check if the level is complete
 
     requestAnimationFrame(gameLoop);
 }
 
-// Start the game
-init();
 
 function drawBackground() {
     // Scroll the background
