@@ -274,11 +274,49 @@
             }
         }
 
-        // Check collisions (e.g., bullets hitting debris, ships, etc.)
-        function checkCollisions() {
-            // Check for ship and alien collisions
-            // Implement collision logic as needed
+    
+      function checkCollisions() {
+    // Check collisions between ship bullets and alien ships
+    for (let i = 0; i < shipBullets.length; i++) {
+        const bullet = shipBullets[i];
+
+        for (let j = 0; j < alienShips.length; j++) {
+            const alien = alienShips[j];
+
+            // Simple AABB collision detection
+            if (bullet.x < alien.x + alien.width &&
+                bullet.x + bullet.width > alien.x &&
+                bullet.y < alien.y + alien.height &&
+                bullet.y + bullet.height > alien.y) {
+                // Collision detected, remove the alien and bullet
+                alienShips.splice(j, 1);  // Remove alien
+                shipBullets.splice(i, 1);  // Remove bullet
+                i--; // Adjust bullet index
+                gameState.alien.killCount++;  // Increase kill count
+                break;  // Exit loop after collision
+            }
         }
+    }
+
+    // Check collisions between alien bullets and player ship
+    for (let i = 0; i < alienBullets.length; i++) {
+        const bullet = alienBullets[i];
+        const ship = gameState.ship;
+
+        if (bullet.x < ship.x + ship.width &&
+            bullet.x + bullet.width > ship.x &&
+            bullet.y < ship.y + ship.height &&
+            bullet.y + bullet.height > ship.y) {
+            // Collision detected, reduce ship lives
+            alienBullets.splice(i, 1);  // Remove bullet
+            gameState.ship.lives--;  // Reduce ship's lives
+            i--;  // Adjust bullet index
+            if (gameState.ship.lives <= 0) {
+                gameState.gameOver = true;  // End game if ship's lives are 0
+            }
+        }
+    }
+}
 
         // Spawn power-up occasionally
         function spawnPowerUp() {
