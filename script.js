@@ -107,26 +107,46 @@
             gameLoop();
         }
 
-        // Game loop
-        function gameLoop() {
-            if (gameState.gameOver) return drawGameOver();
+       function gameLoop() {
+    if (gameState.gameOver) return drawGameOver();
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (gameState.paused) return drawPauseScreen();
+    // Spawn a new alien wave if all aliens are cleared
+    if (alienShips.length === 0) {
+        gameState.level++;
+        createAlienWave();
+    }
 
-            drawBackground();
-            handleInput();
-            spawnDebris();
-            updateGameObjects();
-            renderGameObjects();
-            checkCollisions();
-            aliensShoot();
-            spawnPowerUp();
-            checkPowerUpCollision();
+    // Update and draw ship, aliens, bullets, power-ups, etc.
+    updateShip();
+    updateAliens();
+    updateBullets();
+    updatePowerUp();
 
-            requestAnimationFrame(gameLoop);
-        }
+    checkCollisions();
+    aliensShoot();
+    spawnPowerUp();
+    checkPowerUpCollision();
+
+    drawShip();
+    drawAliens();
+    drawBullets();
+    drawPowerUp();
+
+    // Continue the game loop
+    requestAnimationFrame(gameLoop);
+}
+
+// Initialize the game state
+function init() {
+    gameState.level = 1;
+    gameState.ship.lives = 3;
+    gameState.alien.killCount = 0;
+    gameState.powerUpActive = false;
+    createAlienWave();  // Create the first alien wave
+    gameLoop();  // Start the game loop
+}
 
         // Start the game
         init();
