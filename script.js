@@ -148,8 +148,6 @@ function init() {
     gameLoop();  // Start the game loop
 }
 
-        // Start the game
-        init();
 
         // Background scrolling
         function drawBackground() {
